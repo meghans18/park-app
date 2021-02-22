@@ -3,7 +3,8 @@ const state = {
     user: null,
 };
 const getters = {
-
+    isAuthenticated: state => !(state.user==null),
+    StateUser: state => state.user,
 };
 const actions = {
     async Register({dispatch}, form) {
