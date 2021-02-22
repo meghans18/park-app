@@ -23,7 +23,12 @@ const actions = {
     }
 };
 const mutations = {
-
+    setUser(state, username){
+        state.user = username
+    },
+    logOut(state){
+        state.user = null
+    },
 };
 export default {
   state,
