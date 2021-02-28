@@ -1,15 +1,16 @@
 <template>
   <div id="app container">
+    <b-row id="top-bar" class="row" align-v="center">
+      <b-col class="col-6">
+        <img src="@/assets/fake-logo.png" width="100px" height="100px"/>
+      </b-col>
+      <b-col class="col-6">
+        <NavBar />
+      </b-col>
+    </b-row>
+
     <div class="row">
       <router-view/>
-    </div>
-    <div class="row">
-      <div class="col-6">
-        <p>Filters and map side</p>
-      </div>
-      <div class="col-6 text-right">
-        <NavBar />
-      </div>
     </div>
   </div>
 </template>
@@ -30,5 +31,9 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
+}
+#top-bar {
+  margin-top: 20px;
+  padding-left: 20px;
 }
 </style>

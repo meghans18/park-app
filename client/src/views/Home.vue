@@ -1,7 +1,7 @@
 <template>
   <div class="home text-center container">
     <div v-if="User">
-      <p>Log in successful</p>
+      <p>Logged in as {{User}}</p>
     </div>
   <h2>WELCOME TO PARK APP</h2>
   <p>COMING SOON</p>

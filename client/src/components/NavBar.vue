@@ -1,11 +1,20 @@
 <template>
   <div id="nav">
-    <b-nav>
-      <b-nav-item><router-link to="/">Home</router-link></b-nav-item>
-        <b-nav-item v-if="isLoggedIn"><a @click="logout">Logout</a></b-nav-item>
-        <b-nav-item><router-link to="/register">Register</router-link></b-nav-item>
+    <!-- this is for regular privilege for now -->
+    <span v-if="isLoggedIn">
+      <b-nav align="right">
+        <b-nav-item><router-link to="/">Home</router-link></b-nav-item>
+        <b-nav-item>Rented Spots</b-nav-item>
+        <b-nav-item><a @click="logout">Logout</a></b-nav-item>
+      </b-nav>
+    </span>
+    <!-- can check for permissions eventually to display different navs for different user levels -->
+    <span v-else>
+      <b-nav align="right">
+        <b-nav-item><router-link to="/">Home</router-link></b-nav-item>
         <b-nav-item><router-link to="/login">Login</router-link></b-nav-item>
-    </b-nav>
+      </b-nav>
+    </span>
   </div>
 </template>
 <script>
@@ -17,14 +26,16 @@ export default {
     methods: {
       async logout (){
         await this.$store.dispatch('LogOut')
-        this.$router.push('/login')
       }
     },
 }
 </script>
 <style>
+#nav {
+  margin-right: 50px;
+  font-size: 1.1em;
+}
 #nav a {
-  font-weight: bold;
   color: rgb(46, 46, 46);
   text-decoration: none;
 }
@@ -32,6 +43,6 @@ a:hover {
   cursor: pointer;
 }
 #nav a.router-link-exact-active {
-  color: #42b983;
+  color: #0a814c;
 }
 </style>
