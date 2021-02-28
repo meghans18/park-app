@@ -1,13 +1,11 @@
 <template>
   <div id="nav">
-    <b-button><router-link to="/">Home</router-link></b-button>
-    <span v-if="isLoggedIn">
-      <b-button><a @click="logout">Logout</a></b-button>
-    </span>
-    <span v-else>
-      <b-button><router-link to="/register">Register</router-link></b-button>
-      <b-button><router-link to="/login">Login</router-link></b-button>
-    </span>
+    <b-nav>
+      <b-nav-item><router-link to="/">Home</router-link></b-nav-item>
+        <b-nav-item v-if="isLoggedIn"><a @click="logout">Logout</a></b-nav-item>
+        <b-nav-item><router-link to="/register">Register</router-link></b-nav-item>
+        <b-nav-item><router-link to="/login">Login</router-link></b-nav-item>
+    </b-nav>
   </div>
 </template>
 <script>
@@ -25,9 +23,6 @@ export default {
 }
 </script>
 <style>
-button {
-  margin: 5px !important;
-}
 #nav a {
   font-weight: bold;
   color: rgb(46, 46, 46);
