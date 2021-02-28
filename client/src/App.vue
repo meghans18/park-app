@@ -1,9 +1,19 @@
 <template>
-  <div id="app">
-    <NavBar />
-    <router-view/>
+  <div id="app container">
+    <div class="row">
+      <router-view/>
+    </div>
+    <div class="row">
+      <div class="col-6">
+        <p>Filters and map side</p>
+      </div>
+      <div class="col-6 text-right">
+        <NavBar />
+      </div>
+    </div>
   </div>
 </template>
+
 <script>
 // @ is an alias to /src
 import NavBar from '@/components/NavBar.vue'

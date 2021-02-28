@@ -1,12 +1,12 @@
 <template>
   <div id="nav">
-    <router-link to="/">Home</router-link> |
+    <b-button><router-link to="/">Home</router-link></b-button>
     <span v-if="isLoggedIn">
-      <a @click="logout">Logout</a>
+      <b-button><a @click="logout">Logout</a></b-button>
     </span>
     <span v-else>
-      <router-link to="/register">Register</router-link> |
-      <router-link to="/login">Login</router-link>
+      <b-button><router-link to="/register">Register</router-link></b-button>
+      <b-button><router-link to="/login">Login</router-link></b-button>
     </span>
   </div>
 </template>
@@ -25,12 +25,13 @@ export default {
 }
 </script>
 <style>
-#nav {
-  padding: 30px;
+button {
+  margin: 5px !important;
 }
 #nav a {
   font-weight: bold;
-  color: #2c3e50;
+  color: rgb(46, 46, 46);
+  text-decoration: none;
 }
 a:hover {
   cursor: pointer;

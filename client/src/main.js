@@ -1,6 +1,8 @@
+import BootstrapVue from 'bootstrap-vue';
 import Vue from 'vue'
 import App from './App.vue'
 import router from './router'
+import 'bootstrap/dist/css/bootstrap.css';
 import store from './store'
 import axios from 'axios'
 
@@ -21,6 +23,7 @@ axios.interceptors.response.use(undefined, function (error) {
   }
 })
 
+Vue.use(BootstrapVue);
 
 Vue.config.productionTip = false
 
