@@ -33,7 +33,8 @@ export default {
   color: #2c3e50;
 }
 #top-bar {
-  margin-top: 20px;
-  padding-left: 20px;
+  margin-top: 25px;
+  padding-left: 50px;
+  margin-bottom: 20px;
 }
 </style>

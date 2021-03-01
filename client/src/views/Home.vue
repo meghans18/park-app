@@ -1,10 +1,18 @@
 <template>
-  <div class="home text-center container">
-    <div v-if="User">
-      <p>Logged in as {{User}}</p>
+  <div id="home" class="container">
+    <div class="row">
+      <b-col class="col-12 text-center">
+        <div v-if="User">
+          <p>Logged in as {{User}}</p>
+          <p>WELCOME TO PARK APP</p>
+        </div>
+      </b-col>
     </div>
-  <h2>WELCOME TO PARK APP</h2>
-  <p>COMING SOON</p>
+
+    <b-row>
+      <b-col class="col-6 text-center">Filters and map side</b-col>
+      <b-col class="col-6 text-center">List of spots side</b-col>
+    </b-row>
   </div>
 </template>
 <script>
@@ -18,3 +26,7 @@ export default {
   },
 }
 </script>
+
+<style scoped>
+
+</style>
