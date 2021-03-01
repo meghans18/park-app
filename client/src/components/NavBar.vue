@@ -26,7 +26,7 @@ export default {
     },
     methods: {
       async logout (){
-        await this.$store.dispatch('LogOut')
+        await this.$store.dispatch('logOut')
       }
     },
 }

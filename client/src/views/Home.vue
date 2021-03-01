@@ -22,7 +22,7 @@ export default {
   components: {
   },
   computed: {
-    ...mapGetters({User: "StateUser"}),
+    ...mapGetters({User: "getFirstName"}),
   },
 }
 </script>

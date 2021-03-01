@@ -3,7 +3,8 @@ import VueRouter from "vue-router";
 import Home from "../views/Home.vue";
 import Register from "../views/Register";
 import Login from "../views/Login";
-import Posts from "../views/Posts";
+
+import Ping from "../components/Ping.vue"
 
 Vue.use(VueRouter);
 
@@ -17,19 +18,16 @@ const routes = [
     path: "/register",
     name: "Register",
     component: Register,
-    meta: { guest: true },
   },
   {
     path: "/login",
     name: "Login",
     component: Login,
-    meta: { guest: true },
   },
   {
-    path: "/posts",
-    name: "Posts",
-    component: Posts,
-    meta: { requiresAuth: true },
+    path: '/ping',
+    name: 'Ping',
+    component: Ping,
   },
 ];
 
