@@ -41,6 +41,20 @@
           id="input-3"
           v-model="form.last_name"
           type="text"
+          placeholder="Enter your last name:"
+          required
+        ></b-form-input>
+      </b-form-group>
+
+      <b-form-group
+        id="input-group-4"
+        label="Password:"
+        label-for="input-4"
+      >
+        <b-form-input
+          id="input-4"
+          v-model="form.password"
+          type="password"
           required
         ></b-form-input>
       </b-form-group>
@@ -63,6 +77,7 @@ export default {
         email: "",
         first_name: "",
         last_name: "",
+        password: "",
       },
       showError: false
     };

@@ -6,14 +6,14 @@
     <b-form @submit.prevent="submit">
       <b-form-group
         id="input-group-1"
-        label="Username:"
+        label="Email:"
         label-for="input-1"
       >
         <b-form-input
           id="input-1"
-          v-model="form.username"
+          v-model="form.email"
           type="text"
-          placeholder="Enter username:"
+          placeholder="Enter your email:"
           required
         ></b-form-input>
       </b-form-group>
@@ -22,7 +22,6 @@
         id="input-group-2"
         label="Password:"
         label-for="input-2"
-        description="Must be 12 characters."
       >
         <b-form-input
           id="input-2"
@@ -47,7 +46,7 @@ export default {
   data() {
     return {
       form: {
-        username: "",
+        email: "",
         password: "",
       },
       showError: false
@@ -56,17 +55,7 @@ export default {
   methods: {
     ...mapActions(["LogIn"]),
     async submit() {
-      // const User = new FormData();
-      // User.append("username", this.form.username);
-      // User.append("password", this.form.password);
-      // try {
-      //     await this.LogIn(User);
-      //     this.$router.push("/");
-      //     this.showError = false
-      // } catch (error) {
-      //   this.showError = true
-      // }
-      
+      //get data from back end to set email, first name, and last name on auth state
       //need to send to back end
       console.log(JSON.stringify(this.form))
       this.reset();
