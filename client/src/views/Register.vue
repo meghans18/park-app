@@ -83,18 +83,19 @@ export default {
     };
   },
   methods: {
-    ...mapActions(["register"]),
+    ...mapActions(["logIn"]),
     addUser(payload) {
       const path = 'http://localhost:5000/register';
       axios.post(path, payload).then((response) => {
         console.log(response)
-        this.register(payload);
+        this.logIn(payload); //sends to auth.js
         this.$router.push("/")
       }).catch((error) => {
         console.log(error);
       });
     },
     submit() {
+      sessionStorage.clear()
       const payload = {
         email: this.form.email,
         first_name: this.form.first_name,

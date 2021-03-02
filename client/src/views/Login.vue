@@ -53,17 +53,24 @@ export default {
     };
   },
   methods: {
-    ...mapActions(["LogIn"]),
-    async submit() {
-      //get data from back end to set email, first name, and last name on auth state
-      //need to send to back end
-      console.log(JSON.stringify(this.form))
-      this.reset();
+    ...mapActions(["logIn"]),
+    checkUser(payload) {
+      //const path = "http://localhost:5000/login";
+      //use the same format as register
+      //post to path and then make sure no errors were returned
+      //need to check if payload exists in database on backend side
+      this.logIn(payload); //sends to auth.js
       this.$router.push("/");
     },
-    reset() {
-      this.form.username = ''
-      this.form.password = ''
+    submit() {
+      sessionStorage.clear()
+      //get data from back end to set email, first name, and last name on auth state
+      //need to send to back end
+      const payload = {
+        email: this.form.email,
+        password: this.form.password
+      }
+      this.checkUser(payload);
     },
   },
 };

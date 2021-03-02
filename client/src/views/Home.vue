@@ -28,7 +28,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters({User: "getFirstName"}),
+    ...mapGetters({User: "getEmail"}),
   },
   methods: {
     checkShowAlert: function() {
@@ -42,7 +42,7 @@ export default {
   },
   mounted: function() {
     this.checkShowAlert();
-  }
+  },
 }
 </script>
 
