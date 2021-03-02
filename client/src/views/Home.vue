@@ -3,8 +3,9 @@
     <div class="row">
       <b-col class="col-12 text-center">
         <div v-if="User">
-          <p>Logged in as {{User}}</p>
-          <p>WELCOME TO PARK APP</p>
+          <b-alert v-model="showAlert" variant="success" dismissible>
+            Logged in as {{User}}
+          </b-alert>
         </div>
       </b-col>
     </div>
@@ -21,9 +22,27 @@ export default {
   name: 'Home',
   components: {
   },
+  data() {
+    return {
+      showAlert: false,
+    }
+  },
   computed: {
     ...mapGetters({User: "getFirstName"}),
   },
+  methods: {
+    checkShowAlert: function() {
+      if (sessionStorage.getItem('show') == null) {
+        this.showAlert = true;
+        sessionStorage.setItem('show', false)
+      } else {
+        this.showAlert = false;
+      }
+    }
+  },
+  mounted: function() {
+    this.checkShowAlert();
+  }
 }
 </script>
 

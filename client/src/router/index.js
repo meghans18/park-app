@@ -3,7 +3,7 @@ import VueRouter from "vue-router";
 import Home from "../views/Home.vue";
 import Register from "../views/Register";
 import Login from "../views/Login";
-
+import RentedSpots from '../views/RentedSpots'
 import Ping from "../components/Ping.vue"
 
 Vue.use(VueRouter);
@@ -23,6 +23,11 @@ const routes = [
     path: "/login",
     name: "Login",
     component: Login,
+  },
+  {
+    path: "/rented-spots",
+    name: "Rented Spots",
+    component: RentedSpots,
   },
   {
     path: '/ping',

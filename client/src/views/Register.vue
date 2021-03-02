@@ -13,7 +13,7 @@
           id="input-1"
           v-model="form.email"
           type="email"
-          placeholder="Enter email:"
+          placeholder="Enter your email:"
           required
         ></b-form-input>
       </b-form-group>

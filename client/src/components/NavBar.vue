@@ -4,7 +4,8 @@
     <span v-if="isLoggedIn">
       <b-nav align="right">
         <b-nav-item><router-link to="/">Home</router-link></b-nav-item>
-        <b-nav-item>Rented Spots</b-nav-item>
+        <b-nav-item>Lease Your Spot</b-nav-item>
+        <b-nav-item><router-link to="/rented-spots">Rented Spots</router-link></b-nav-item>
         <b-nav-item><a @click="logout">Logout</a></b-nav-item>
       </b-nav>
     </span>
@@ -26,6 +27,7 @@ export default {
     },
     methods: {
       async logout (){
+        sessionStorage.clear();
         await this.$store.dispatch('logOut')
       }
     },
