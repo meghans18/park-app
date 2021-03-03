@@ -1,13 +1,29 @@
 <template>
-  <div id="app">
-    <div id="nav">
-      <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link>
+  <div id="app container">
+    <b-row id="top-bar" class="row" align-v="center">
+      <b-col class="col-6">
+        <img src="@/assets/fake-logo.png" width="100px" height="100px"/>
+      </b-col>
+      <b-col class="col-6">
+        <NavBar />
+      </b-col>
+    </b-row>
+
+    <div class="row">
+      <router-view/>
     </div>
-    <router-view/>
   </div>
 </template>
 
+<script>
+// @ is an alias to /src
+import NavBar from '@/components/NavBar.vue'
+export default {
+  components: {
+    NavBar
+  }
+}
+</script>
 <style>
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
@@ -16,17 +32,9 @@
   text-align: center;
   color: #2c3e50;
 }
-
-#nav {
-  padding: 30px;
-}
-
-#nav a {
-  font-weight: bold;
-  color: #2c3e50;
-}
-
-#nav a.router-link-exact-active {
-  color: #42b983;
+#top-bar {
+  margin-top: 25px;
+  padding-left: 50px;
+  margin-bottom: 20px;
 }
 </style>
