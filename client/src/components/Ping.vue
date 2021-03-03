@@ -1,6 +1,7 @@
 <template>
   <div class="container">
     <p>{{ msg }}</p>
+    <button @click="postMessage()">Click to post</button>
   </div>
 </template>
 
@@ -26,6 +27,14 @@ export default {
           console.error(error);
         });
     },
+    postMessage() {
+        const path = 'http://localhost:5000/ping'
+        axios.post(path, {title: "set up backend"}).then((response) => {
+            this.msg = response.data;
+        }).catch((error) => {
+            console.log(error)
+        })
+    }
   },
   created() {
     this.getMessage();
