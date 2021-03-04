@@ -58,7 +58,7 @@ class User(db.Model):
 	password = db.Column(db.String(120), nullable=False)
 
 	def __repr__(self):
-		return '<User %r>' % self.username
+		return '<User %r>' % self.email
 
 # class Spot(db.Model):
 #     id = db.Column(db.Integer, primary_key=True)
@@ -101,7 +101,7 @@ def register():
 		except Exception as e:
 			return jsonify({
 				'status': 'failed',
-				'message': 'duplicate book title'
+				'message': 'User already exists'
 			})
 	data = []
 	users = User.query.all()
@@ -115,6 +115,35 @@ def register():
 		'status': 'success',
 		'users': data
 	})
+
+@app.route("/login", methods=['POST'])
+def login():
+	status = ''
+	message = ''
+	try:
+		post_data = request.get_json()
+		email = post_data.get('email')
+		password = post_data.get('password')
+		loginPerson = User.query.filter_by(email=email).first()
+		if (loginPerson.password) == password:
+			status = 'success'
+			message = 'User Authenticated'
+		else:
+			status = 'failed'
+			message = 'Cannot Authenticate'
+	except Exception as e:
+			return jsonify({
+				'status': 'failed',
+				'message': "User doesn't exist"
+			})
+	return jsonify({
+		'status': status,
+		'message': message
+	})
+
+
+		
+
 
 @app.route("/spot", methods=['POST'])
 def spot():
