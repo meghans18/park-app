@@ -46,6 +46,7 @@ class User(db.Model):
     firstName = db.Column(db.String(80), nullable=False)
     lastName = db.Column(db.String(80), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
+	password = db.Column(db.String(120), unique=Flase, nullabe=False)
     priority = db.Column(db.String(10), nullable=False, default="user")
 
     def __repr__(self):
@@ -72,6 +73,20 @@ def return_books():
 		'status': 'success',
 		'books': BOOKS
 	})
+
+@app.route("/register", methods=['POST'])
+def register():
+	response_object = {'status': 'success'}
+	if request.method == 'POST':
+		post_data = request.get_json()
+		USERS.append({
+			'first_name': post_data.get('first_name')
+			'last_name': post_data.get('last_name')
+			'email': post_data.get('email')
+			'password': post_data.get('password')
+		})
+		response_object['message'] = 'User Registered!'
+
 
 @app.route("/")
 def home():
