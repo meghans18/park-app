@@ -40,6 +40,28 @@ class Book(db.Model):
 
     def __repr__(self):
         return "<Title: {}>".format(self.title)
+
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    firstName = db.Column(db.String(80), nullable=False)
+    lastName = db.Column(db.String(80), nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    priority = db.Column(db.String(10), nullable=False, default="user")
+
+    def __repr__(self):
+        return '<User %r>' % self.username
+
+class Spot(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    addressNumber = db.Column(db.Integer, nullable=False)
+    street = db.Column(db.String(80), nullable=False)
+    city = db.Column(db.String(50), unique=True, nullable=False)
+    state = db.Column(db.String(20), nullable=False, default="user")
+    zipCode = db.Column(db.Integer, nullable=False)
+    spotNumber = db.Column(db.Integer, nullable=True)
+
+    def __repr__(self):
+        return '<Spot %r>' % self.id
 		
 # enable CORS
 CORS(app, resources={r'/*': {'origins': '*'}})
