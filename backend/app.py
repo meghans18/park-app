@@ -46,10 +46,11 @@ class User(db.Model):
     firstName = db.Column(db.String(80), nullable=False)
     lastName = db.Column(db.String(80), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
+	password = db.Column(db.String(400), unique=True, nullable=False)
     priority = db.Column(db.String(10), nullable=False, default="user")
 
     def __repr__(self):
-        return '<User %r>' % self.username
+        return '<User %r>' % self.email
 
 class Spot(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -101,6 +102,12 @@ def practice():
 		'status': status,
 		'books': books
 	})
+
+@app.route("/register", methods=["POST"])
+def register():
+	status = 'success'
+	if request.method == 'POST':
+		try:
   
 if __name__ == "__main__":
     app.run()
