@@ -34,6 +34,15 @@ BOOKS = [
 	}
 ]
 
+USERS = [
+	{
+		'first_name': 'Cameron',
+		'last_name': 'Bahl',
+		'email': 'cbahl@uiowa.edu',
+		'password': 'password'
+	}
+]
+
 #models
 class Book(db.Model):
     title = db.Column(db.String(80), unique=True, nullable=False, primary_key=True)
@@ -42,27 +51,27 @@ class Book(db.Model):
         return "<Title: {}>".format(self.title)
 
 class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    firstName = db.Column(db.String(80), nullable=False)
-    lastName = db.Column(db.String(80), nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
-	password = db.Column(db.String(120), unique=Flase, nullabe=False)
-    priority = db.Column(db.String(10), nullable=False, default="user")
+	id = db.Column(db.Integer, primary_key=True)
+	first_name = db.Column(db.String(80), nullable=False)
+	last_name = db.Column(db.String(80), nullable=False)
+	email = db.Column(db.String(120), unique=True, nullable=False)
+	password = db.Column(db.String(120), nullable=False)
 
-    def __repr__(self):
-        return '<User %r>' % self.username
+	def __repr__(self):
+		return '<User %r>' % self.username
 
-class Spot(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    addressNumber = db.Column(db.Integer, nullable=False)
-    street = db.Column(db.String(80), nullable=False)
-    city = db.Column(db.String(50), unique=True, nullable=False)
-    state = db.Column(db.String(20), nullable=False, default="user")
-    zipCode = db.Column(db.Integer, nullable=False)
-    spotNumber = db.Column(db.Integer, nullable=True)
+# class Spot(db.Model):
+#     id = db.Column(db.Integer, primary_key=True)
+#     addressNumber = db.Column(db.Integer, nullable=False)
+#     street = db.Column(db.String(80), nullable=False)
+#     city = db.Column(db.String(50), unique=True, nullable=False)
+#     state = db.Column(db.String(20), nullable=False, default="user")
+#     zipCode = db.Column(db.Integer, nullable=False)
+#     spotNumber = db.Column(db.Integer, nullable=True)
 
-    def __repr__(self):
-        return '<Spot %r>' % self.id
+#     def __repr__(self):
+#         return '<Spot %r>' % self.id
+
 		
 # enable CORS
 CORS(app, resources={r'/*': {'origins': '*'}})
@@ -74,18 +83,38 @@ def return_books():
 		'books': BOOKS
 	})
 
-@app.route("/register", methods=['POST'])
+@app.route("/register", methods=['GET', 'POST'])
 def register():
 	response_object = {'status': 'success'}
 	if request.method == 'POST':
-		post_data = request.get_json()
-		USERS.append({
-			'first_name': post_data.get('first_name')
-			'last_name': post_data.get('last_name')
-			'email': post_data.get('email')
-			'password': post_data.get('password')
+		try:
+			post_data = request.get_json()
+			user = User(
+				first_name=post_data.get('first_name'),
+				last_name=post_data.get('last_name'),
+				email=post_data.get('email'),
+				password=post_data.get('password')
+			)
+			db.session.add(user)
+			db.session.commit()
+			response_object['message'] = 'User Registered!'
+		except Exception as e:
+			return jsonify({
+				'status': 'failed',
+				'message': 'duplicate book title'
+			})
+	data = []
+	users = User.query.all()
+	for user in users:
+		data.append({
+			"first_name": user.first_name,
+			"last_name": user.last_name,
+			"email": user.email
 		})
-		response_object['message'] = 'User Registered!'
+	return jsonify({
+		'status': 'success',
+		'users': data
+	})
 
 
 @app.route("/")
@@ -97,7 +126,7 @@ def practice():
 	status = 'success'
 	if request.method == 'POST':
 		try:
-			post_data = request.get_json();
+			post_data = request.get_json()
 			book = Book(title = post_data.get("title"))
 			db.session.add(book)
 			db.session.commit()
