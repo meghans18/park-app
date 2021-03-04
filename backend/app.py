@@ -41,25 +41,25 @@ class Book(db.Model):
     def __repr__(self):
         return "<Title: {}>".format(self.title)
 
-class User(db.Model):
+class user(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    firstName = db.Column(db.String(80), nullable=False)
-    lastName = db.Column(db.String(80), nullable=False)
+    first_name = db.Column(db.String(80), nullable=False)
+    last_name = db.Column(db.String(80), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
-	password = db.Column(db.String(400), nullable=False)
+    password = db.Column(db.String(400), nullable=False)
     priority = db.Column(db.String(10), nullable=False, default="user")
 
     def __repr__(self):
         return '<User %r>' % self.email
 
-class Spot(db.Model):
+class spot(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    addressNumber = db.Column(db.Integer, nullable=False)
+    address_number = db.Column(db.Integer, nullable=False)
     street = db.Column(db.String(80), nullable=False)
     city = db.Column(db.String(50), unique=True, nullable=False)
     state = db.Column(db.String(20), nullable=False, default="user")
-    zipCode = db.Column(db.Integer, nullable=False)
-    spotNumber = db.Column(db.Integer, nullable=True)
+    zip_code = db.Column(db.Integer, nullable=False)
+    spot_number = db.Column(db.Integer, nullable=True)
 
     def __repr__(self):
         return '<Spot %r>' % self.id
@@ -79,13 +79,28 @@ def register():
 	response_object = {'status': 'success'}
 	if request.method == 'POST':
 		post_data = request.get_json()
-		USERS.append({
-			'first_name': post_data.get('first_name')
-			'last_name': post_data.get('last_name')
-			'email': post_data.get('email')
+		user.append({
+			'first_name': post_data.get('first_name'),
+		    'last_name': post_data.get('last_name'),
+			'email': post_data.get('email'),
 			'password': post_data.get('password')
 		})
 		response_object['message'] = 'User Registered!'
+
+@app.route("/spot", methods=['POST'])
+def spot():
+	response_object = {'status': 'success'}
+	if request.method == 'POST':
+		post_data = request.get_json()
+		user.append({
+			'address_number': post_data.get('address_number'),
+		    'street': post_data.get('street'),
+			'city': post_data.get('city'),
+			'state': post_data.get('state'),
+			'zip_code': post_data.get('zip_code'),
+			'spot_number': post_data.get('spot_number')
+		})
+		response_object['message'] = 'Spot Registered!'
 
 
 @app.route("/")
@@ -116,12 +131,6 @@ def practice():
 		'status': status,
 		'books': books
 	})
-
-@app.route("/register", methods=["POST"])
-def register():
-	status = 'success'
-	if request.method == 'POST':
-		try:
   
 if __name__ == "__main__":
     app.run()
