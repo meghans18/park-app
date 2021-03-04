@@ -116,6 +116,21 @@ def register():
 		'users': data
 	})
 
+@app.route("/spot", methods=['POST'])
+def spot():
+	response_object = {'status': 'success'}
+	if request.method == 'POST':
+		post_data = request.get_json()
+		user.append({
+			'address_number': post_data.get('address_number'),
+		    'street': post_data.get('street'),
+			'city': post_data.get('city'),
+			'state': post_data.get('state'),
+			'zip_code': post_data.get('zip_code'),
+			'spot_number': post_data.get('spot_number')
+		})
+		response_object['message'] = 'Spot Registered!'
+
 
 @app.route("/")
 def home():
