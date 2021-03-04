@@ -26,6 +26,14 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
 
+BOOKS = [
+	{
+		'title': 'On the Road',
+		'author': 'Jack Kerouac',
+		'read': True
+	}
+]
+
 #models
 class Book(db.Model):
     title = db.Column(db.String(80), unique=True, nullable=False, primary_key=True)
@@ -35,6 +43,13 @@ class Book(db.Model):
 		
 # enable CORS
 CORS(app, resources={r'/*': {'origins': '*'}})
+
+@app.route("/books", methods=["GET"])
+def return_books():
+	return jsonify({
+		'status': 'success',
+		'books': BOOKS
+	})
 
 @app.route("/")
 def home():
@@ -62,7 +77,7 @@ def practice():
 		})
 	return jsonify({
 		'status': status,
-		'books': data
+		'books': books
 	})
   
 if __name__ == "__main__":
