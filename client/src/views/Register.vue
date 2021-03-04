@@ -100,7 +100,8 @@ export default {
       const payload = {
         email: this.form.email,
         first_name: this.form.first_name,
-        last_name: this.form.last_name
+        last_name: this.form.last_name,
+        password: this.form.password
       };
       this.addUser(payload);
     }

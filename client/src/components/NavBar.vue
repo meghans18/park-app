@@ -28,7 +28,7 @@ export default {
     methods: {
       async logout (){
         sessionStorage.clear();
-        this.$router.push('/')
+        //this.$router.push('/')
         await this.$store.dispatch('logOut')
       }
     },

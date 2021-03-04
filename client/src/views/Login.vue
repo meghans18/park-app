@@ -39,6 +39,7 @@
 
 <script>
 import { mapActions } from "vuex";
+import axios from 'axios'
 
 export default {
   name: "Login",
@@ -55,12 +56,15 @@ export default {
   methods: {
     ...mapActions(["logIn"]),
     checkUser(payload) {
-      //const path = "http://localhost:5000/login";
-      //use the same format as register
-      //post to path and then make sure no errors were returned
-      //need to check if payload exists in database on backend side
-      this.logIn(payload); //sends to auth.js
-      this.$router.push("/");
+      const path = "http://localhost:5000/login";
+      axios.post(path, payload).then((response) => {
+        console.log(response)
+        this.logIn(payload); //sends to auth.js
+        this.$router.push("/")
+      }).catch((error) => {
+        console.log(error);
+        this.$router.push("/")
+      });
     },
     submit() {
       sessionStorage.clear()
