@@ -1,3 +1,4 @@
 /backend/__pycache__
 /backend/parkapp.db
-/.idea
+/backend/.idea
+.idea
