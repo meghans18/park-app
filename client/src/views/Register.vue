@@ -3,6 +3,11 @@
     <div class="text-center">
       <p>Welcome to Park</p>
     </div>
+
+    <b-alert v-model="showError" variant="danger" dismissible>
+      Email already in use!
+    </b-alert>
+    
     <b-form @submit.prevent="submit">
       <b-form-group
         id="input-group-1"
@@ -61,7 +66,6 @@
 
       <b-button variant="success" type="submit">Submit</b-button>
     </b-form>
-    <p v-if="showError" id="error">Username already exists</p>
   </div>
 </template>
 
@@ -87,9 +91,14 @@ export default {
     addUser(payload) {
       const path = 'http://localhost:5000/register';
       axios.post(path, payload).then((response) => {
-        console.log(response)
-        this.logIn(payload); //sends to auth.js
-        this.$router.push("/")
+        console.log(response.data.status)
+        if (response.data.status == 'failed') { 
+          this.resetForm();
+          this.showError = true;
+        } else {
+          this.logIn(payload); //sends to auth.js
+          this.$router.push("/")
+        }
       }).catch((error) => {
         console.log(error);
         this.$router.push("/")
@@ -104,6 +113,12 @@ export default {
         password: this.form.password
       };
       this.addUser(payload);
+    },
+    resetForm() {
+      this.form.email = ''
+      this.form.first_name = ''
+      this.form.last_name = ''
+      this.form.password = ''
     }
   },
 };

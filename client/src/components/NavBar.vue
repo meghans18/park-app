@@ -28,8 +28,8 @@ export default {
     methods: {
       async logout (){
         sessionStorage.clear();
-        //this.$router.push('/')
-        await this.$store.dispatch('logOut')
+        this.$store.dispatch('logOut')
+        if (this.$route.name != 'Home') { this.$router.push('/') }
       }
     },
 }
