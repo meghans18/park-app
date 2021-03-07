@@ -1,5 +1,5 @@
 <template>
-  <div class="login container">
+  <div class="login container text-left">
     <div class="text-center">
       <p>Login to Park</p>
     </div>

@@ -1,5 +1,5 @@
 <template>
-  <div class="register container">
+  <div class="register container text-left">
     <div class="text-center">
       <p>Welcome to Park</p>
     </div>

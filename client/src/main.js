@@ -4,6 +4,7 @@ import App from './App.vue'
 import router from './router'
 import 'bootstrap/dist/css/bootstrap.css';
 import store from './store'
+import  * as VueGoogleMaps from 'vue2-google-maps'
 // import axios from 'axios'
 
 // need to change to our python app's URL, this is just to check login functionality
@@ -22,6 +23,13 @@ import store from './store'
 // })
 
 Vue.use(BootstrapVue);
+
+Vue.use(VueGoogleMaps, {
+  load: {
+    key: 'AIzaSyCVpzYXhFftDEmOI6qUVVefm0QhjDV5PCE', // API key
+    libraries: 'places', // used for places input
+  },
+})
 
 Vue.config.productionTip = false
 
