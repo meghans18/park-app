@@ -1,5 +1,5 @@
 <template>
-  <div id="home" class="container">
+  <div id="home">
     <div class="row">
       <b-col class="col-12 text-center">
         <div v-if="User">
@@ -10,17 +10,24 @@
       </b-col>
     </div>
 
-    <b-row>
-      <b-col class="col-6 text-center">Filters and map side</b-col>
-      <b-col class="col-6 text-center">List of spots side</b-col>
-    </b-row>
+<div class="row">
+      <b-col class="col-6">
+        <GoogleMap />
+      </b-col>
+      <b-col class="col-6">
+        List of spots side (COMING SOON)
+      </b-col>
+    </div>
   </div>
 </template>
 <script>
 import { mapGetters } from "vuex";
+import GoogleMap from '@/components/GoogleMap.vue'
+
 export default {
   name: 'Home',
   components: {
+    GoogleMap,
   },
   data() {
     return {
@@ -47,5 +54,4 @@ export default {
 </script>
 
 <style scoped>
-
 </style>
