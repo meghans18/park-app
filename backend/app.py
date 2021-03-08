@@ -57,6 +57,7 @@ class User(db.Model):
 	email = db.Column(db.String(120), unique=True, nullable=False)
 	password = db.Column(db.String(120), nullable=False)
 	privilege = db.Column(db.String(120), nullable=False) # 'regular', 'admin', 'towing'
+	blocked = db.Column(db.Boolean, default=False)
 
 	def __repr__(self):
 		return '<User %r>' % self.email
@@ -117,7 +118,8 @@ def register():
 				"email": user.email,
 				"first_name": user.first_name,
 				"last_name": user.last_name,
-				"privilege": user.privilege
+				"privilege": user.privilege,
+				"blocked": user.blocked,
 			})
 		return jsonify({
 			'status': 'success',
@@ -130,16 +132,30 @@ def single_book(user_id):
 	message = ''
 	person = User.query.filter_by(id=user_id).first()
 	if request.method == 'PUT':
-		try:
-			person.privilege = 'towing'
-			db.session.commit()
-			status = 'success'
-			message = 'User updated successfully'
-		except Exception as e:
-			return jsonify({
-				'status': 'failed',
-				'message': 'Update failed'
-			})
+		message = request.get_json().get('message')
+		if message == 'blockUser':
+			try:
+				person.blocked = not person.blocked
+				db.session.commit()
+				status = 'success'
+				message = 'User updated successfully'
+			except Exception as e:
+				return jsonify({
+					'status': 'failed',
+					'message': 'Update failed'
+				})
+		if message == 'changeTowing':
+			try:
+				if person.privilege == 'towing': person.privilege = 'regular'
+				else: person.privilege = 'towing'
+				db.session.commit()
+				status = 'success'
+				message = 'User updated successfully'
+			except Exception as e:
+				return jsonify({
+					'status': 'failed',
+					'message': 'Update failed'
+				})
 	if request.method == 'DELETE':
 		try:
 			db.session.delete(person)
@@ -166,6 +182,11 @@ def login():
 		email = post_data.get('email')
 		password = post_data.get('password')
 		loginPerson = User.query.filter_by(email=email).first()
+		if loginPerson.blocked == True:
+			return jsonify({
+				'status': 'failed',
+				'message': 'User is blocked',
+			})
 		if (loginPerson.password) == password:
 			status = 'success'
 			message = 'User Authenticated'
@@ -183,10 +204,6 @@ def login():
 		'privilege': privilege,
 		'message': message
 	})
-
-
-		
-
 
 @app.route("/spot", methods=['POST'])
 def spot():

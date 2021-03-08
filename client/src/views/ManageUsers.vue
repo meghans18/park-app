@@ -9,6 +9,7 @@
                     <th scope="col">Last Name</th>
                     <th scope="col">Email</th>
                     <th scope="col">Privilege</th>
+                    <th scope="col">Blocked?</th>
                     <th></th>
                     </tr>
                 </thead>
@@ -19,9 +20,22 @@
                         <td>{{ user.email }}</td>
                         <td>{{ user.privilege }}</td>
                         <td>
+                            <span v-if="user.blocked">Yes</span>
+                            <span v-else>No</span>
+                        </td>
+                        <td>
                             <div class="btn-group" role="group">
-                            <button type="button" class="btn btn-warning btn-sm" @click="addTowing(user)">Add Towing</button>
-                            <button type="button" class="btn btn-danger btn-sm" @click="banUser(user)">Ban User</button>
+                            <button type="button" class="btn btn-primary btn-sm" @click="changeTowing(user)">
+                                <span v-if="user.privilege == 'towing'">Regular</span>
+                                <span v-else>Towing</span>
+                            </button>
+                            <button type="button" class="btn btn-warning btn-sm" @click="blockUser(user)">
+                                <span v-if="user.blocked">Unblock User</span>
+                                <span v-else>Block User</span>
+                            </button>
+                            <button type="button" class="btn btn-danger btn-sm" @click="banUser(user)">
+                                Ban User
+                            </button>
                             </div>
                         </td>
                     </tr>
@@ -44,30 +58,41 @@ export default {
         getUsers() {
             const path = 'http://localhost:5000/users';
             axios.get(path).then((response) => {
-                console.log(response)
                 this.users = response.data.users
             }).catch((error) => {
                 console.error(error);
             });
         },
-        banUser(userData) {
+        blockUser(userData) {
             const path = `http://localhost:5000/users/${userData.id}`;
-            axios.delete(path).then((response) => {
-                console.log(response)
+            const payload = {
+                'message': 'blockUser',
+            }
+            axios.put(path, payload).then(() => {
                 this.getUsers();
             }).catch((error) => {
                 console.error(error);
             }); 
         },
-        addTowing(userData) {
+        changeTowing(userData) {
             const path = `http://localhost:5000/users/${userData.id}`;
-            axios.put(path).then((response) => {
-                console.log(response)
+            const payload = {
+                'message': 'changeTowing'
+            }
+            axios.put(path, payload).then(() => {
                 this.getUsers();
             }).catch((error) => {
                 console.error(error);
             }); 
-        }
+        },
+        banUser(userData) {
+            const path = `http://localhost:5000/users/${userData.id}`;
+            axios.delete(path).then(() => {
+                this.getUsers();
+            }).catch((error) => {
+                console.error(error);
+            }); 
+        },
     },
     created: function() {
         this.getUsers()
