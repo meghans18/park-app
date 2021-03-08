@@ -56,6 +56,7 @@ class User(db.Model):
 	last_name = db.Column(db.String(80), nullable=False)
 	email = db.Column(db.String(120), unique=True, nullable=False)
 	password = db.Column(db.String(120), nullable=False)
+	privilege = db.Column(db.String(120), nullable=False) # 'regular', 'admin', 'towing'
 
 	def __repr__(self):
 		return '<User %r>' % self.email
@@ -83,9 +84,8 @@ def return_books():
 		'books': BOOKS
 	})
 
-@app.route("/register", methods=['GET', 'POST'])
+@app.route("/register", methods=['POST'])
 def register():
-	response_object = {'status': 'success'}
 	if request.method == 'POST':
 		try:
 			post_data = request.get_json()
@@ -93,32 +93,26 @@ def register():
 				first_name=post_data.get('first_name'),
 				last_name=post_data.get('last_name'),
 				email=post_data.get('email'),
-				password=post_data.get('password')
+				password=post_data.get('password'),
+				privilege='regular'
 			)
 			db.session.add(user)
 			db.session.commit()
-			response_object['message'] = 'User Registered!'
 		except Exception as e:
 			return jsonify({
 				'status': 'failed',
 				'message': 'User already exists'
 			})
-	data = []
-	users = User.query.all()
-	for user in users:
-		data.append({
-			"first_name": user.first_name,
-			"last_name": user.last_name,
-			"email": user.email
-		})
 	return jsonify({
 		'status': 'success',
-		'users': data
+		'privilege': 'regular',
+		'message': 'Registration successful'
 	})
 
 @app.route("/login", methods=['POST'])
 def login():
 	status = ''
+	privilege = ''
 	message = ''
 	try:
 		post_data = request.get_json()
@@ -131,6 +125,7 @@ def login():
 		else:
 			status = 'failed'
 			message = 'Cannot Authenticate'
+		privilege = loginPerson.privilege
 	except Exception as e:
 			return jsonify({
 				'status': 'failed',
@@ -138,6 +133,7 @@ def login():
 			})
 	return jsonify({
 		'status': status,
+		'privilege': privilege,
 		'message': message
 	})
 

@@ -91,11 +91,13 @@ export default {
     addUser(payload) {
       const path = 'http://localhost:5000/register';
       axios.post(path, payload).then((response) => {
-        console.log(response.data.status)
+        console.log(response)
         if (response.data.status == 'failed') { 
           this.resetForm();
           this.showError = true;
         } else {
+          payload.privilege = response.data.privilege
+          console.log(payload)
           this.logIn(payload); //sends to auth.js
           this.$router.push("/")
         }
@@ -110,7 +112,7 @@ export default {
         email: this.form.email,
         first_name: this.form.first_name,
         last_name: this.form.last_name,
-        password: this.form.password
+        password: this.form.password,
       };
       this.addUser(payload);
     },

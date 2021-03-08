@@ -67,6 +67,7 @@ export default {
           this.resetForm();
           this.showError = true;
         } else {
+          payload.privilege = response.data.privilege
           this.logIn(payload); //sends to auth.js
           this.$router.push("/")
         }
