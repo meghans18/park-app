@@ -84,7 +84,7 @@ def return_books():
 		'books': BOOKS
 	})
 
-@app.route("/register", methods=['POST'])
+@app.route("/users", methods=['GET', 'POST'])
 def register():
 	if request.method == 'POST':
 		try:
@@ -98,15 +98,62 @@ def register():
 			)
 			db.session.add(user)
 			db.session.commit()
+			return jsonify({
+				'status': 'success',
+				'privilege': 'regular',
+				'message': 'Registration successful'
+			})
 		except Exception as e:
 			return jsonify({
 				'status': 'failed',
 				'message': 'User already exists'
 			})
+	else:
+		data = []
+		users = User.query.all()
+		for user in users:
+			data.append({
+				"id": user.id,
+				"email": user.email,
+				"first_name": user.first_name,
+				"last_name": user.last_name,
+				"privilege": user.privilege
+			})
+		return jsonify({
+			'status': 'success',
+			'users': data
+		})
+
+@app.route('/users/<user_id>', methods=['PUT', 'DELETE'])
+def single_book(user_id):
+	status = ''
+	message = ''
+	person = User.query.filter_by(id=user_id).first()
+	if request.method == 'PUT':
+		try:
+			person.privilege = 'towing'
+			db.session.commit()
+			status = 'success'
+			message = 'User updated successfully'
+		except Exception as e:
+			return jsonify({
+				'status': 'failed',
+				'message': 'Update failed'
+			})
+	if request.method == 'DELETE':
+		try:
+			db.session.delete(person)
+			db.session.commit()
+			status = 'success'
+			message = 'User deleted successfully'
+		except Exception as e:
+			return jsonify({
+				'status': 'failed',
+				'message': 'Deletion failed'
+			})
 	return jsonify({
-		'status': 'success',
-		'privilege': 'regular',
-		'message': 'Registration successful'
+		'status': status,
+		'message': message
 	})
 
 @app.route("/login", methods=['POST'])
