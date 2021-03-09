@@ -10,12 +10,12 @@
       </b-col>
     </div>
 
-<div class="row">
-      <b-col class="col-6">
+    <div class="row" style="height: 80vh">       
+      <b-col class="col-6" style="height: 100%;">
         <GoogleMap />
       </b-col>
-      <b-col class="col-6">
-        List of spots side (COMING SOON)
+      <b-col class="col-6" style="height: 100%; overflow-y: scroll">
+        <SpotList />
       </b-col>
     </div>
   </div>
@@ -23,11 +23,13 @@
 <script>
 import { mapGetters } from "vuex";
 import GoogleMap from '@/components/GoogleMap.vue'
+import SpotList from '@/components/SpotList.vue'
 
 export default {
   name: 'Home',
   components: {
     GoogleMap,
+    SpotList,
   },
   data() {
     return {
@@ -54,4 +56,8 @@ export default {
 </script>
 
 <style scoped>
+#home {
+  overflow-y:hidden;
+  overflow-x: hidden;
+}
 </style>

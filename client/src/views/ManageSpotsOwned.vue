@@ -1,5 +1,5 @@
 <template>
-    <div id="leaseSpot" class="container">
+    <div id="manageSpotsOwned" class="container">
         <div class="text-center">
             <p>Manage/Add Spots for Rent</p>
         </div>
@@ -102,7 +102,7 @@
 
 <script>
 export default {
-    name: 'LeaseSpot',
+    name: 'ManageSpotsOwned',
     data() {
         return {
             form: {
@@ -131,7 +131,7 @@ export default {
                     state: 'Illinois',
                     zipcode: 52245,
                     price: 129
-                }
+                },
             ],
         }
     },
