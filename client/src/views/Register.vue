@@ -1,8 +1,13 @@
 <template>
-  <div class="register container">
+  <div class="register container text-left">
     <div class="text-center">
       <p>Welcome to Park</p>
     </div>
+
+    <b-alert v-model="showError" variant="danger" dismissible>
+      Email already in use!
+    </b-alert>
+    
     <b-form @submit.prevent="submit">
       <b-form-group
         id="input-group-1"
@@ -61,7 +66,6 @@
 
       <b-button variant="success" type="submit">Submit</b-button>
     </b-form>
-    <p v-if="showError" id="error">Username already exists</p>
   </div>
 </template>
 
@@ -85,11 +89,18 @@ export default {
   methods: {
     ...mapActions(["logIn"]),
     addUser(payload) {
-      const path = 'http://localhost:5000/register';
+      const path = 'http://localhost:5000/users';
       axios.post(path, payload).then((response) => {
         console.log(response)
-        this.logIn(payload); //sends to auth.js
-        this.$router.push("/")
+        if (response.data.status == 'failed') { 
+          this.resetForm();
+          this.showError = true;
+        } else {
+          payload.privilege = response.data.privilege
+          console.log(payload)
+          this.logIn(payload); //sends to auth.js
+          this.$router.push("/")
+        }
       }).catch((error) => {
         console.log(error);
         this.$router.push("/")
@@ -101,9 +112,15 @@ export default {
         email: this.form.email,
         first_name: this.form.first_name,
         last_name: this.form.last_name,
-        password: this.form.password
+        password: this.form.password,
       };
       this.addUser(payload);
+    },
+    resetForm() {
+      this.form.email = ''
+      this.form.first_name = ''
+      this.form.last_name = ''
+      this.form.password = ''
     }
   },
 };

@@ -33,6 +33,8 @@ class User(db.Model):
 	last_name = db.Column(db.String(80), nullable=False)
 	email = db.Column(db.String(120), unique=True, nullable=False)
 	password = db.Column(db.String(120), nullable=False)
+	privilege = db.Column(db.String(120), nullable=False) # 'regular', 'admin', 'towing'
+	blocked = db.Column(db.Boolean, default=False)
 
 	def __repr__(self):
 		return '<User %r>' % self.email
@@ -55,8 +57,15 @@ CORS(app, resources={r'/*': {'origins': '*'}})
 
 #routes
 @app.route("/register", methods=['GET', 'POST'])
+@app.route("/books", methods=["GET"])
+def return_books():
+	return jsonify({
+		'status': 'success',
+		'books': BOOKS
+	})
+
+@app.route("/users", methods=['GET', 'POST'])
 def register():
-	response_object = {'status': 'success'}
 	if request.method == 'POST':
 		try:
 			post_data = request.get_json()
@@ -64,44 +73,106 @@ def register():
 				first_name=post_data.get('first_name'),
 				last_name=post_data.get('last_name'),
 				email=post_data.get('email'),
-				password=post_data.get('password')
+				password=post_data.get('password'),
+				privilege='regular'
 			)
 			db.session.add(user)
 			db.session.commit()
-			response_object['message'] = 'User Registered!'
+			return jsonify({
+				'status': 'success',
+				'privilege': 'regular',
+				'message': 'Registration successful'
+			})
 		except Exception as e:
 			return jsonify({
 				'status': 'failed',
 				'message': 'User already exists'
 			})
-	data = []
-	users = User.query.all()
-	for user in users:
-		data.append({
-			"first_name": user.first_name,
-			"last_name": user.last_name,
-			"email": user.email
+	else:
+		data = []
+		users = User.query.all()
+		for user in users:
+			data.append({
+				"id": user.id,
+				"email": user.email,
+				"first_name": user.first_name,
+				"last_name": user.last_name,
+				"privilege": user.privilege,
+				"blocked": user.blocked,
+			})
+		return jsonify({
+			'status': 'success',
+			'users': data
 		})
+
+@app.route('/users/<user_id>', methods=['PUT', 'DELETE'])
+def single_book(user_id):
+	status = ''
+	message = ''
+	person = User.query.filter_by(id=user_id).first()
+	if request.method == 'PUT':
+		message = request.get_json().get('message')
+		if message == 'blockUser':
+			try:
+				person.blocked = not person.blocked
+				db.session.commit()
+				status = 'success'
+				message = 'User updated successfully'
+			except Exception as e:
+				return jsonify({
+					'status': 'failed',
+					'message': 'Update failed'
+				})
+		if message == 'changeTowing':
+			try:
+				if person.privilege == 'towing': person.privilege = 'regular'
+				else: person.privilege = 'towing'
+				db.session.commit()
+				status = 'success'
+				message = 'User updated successfully'
+			except Exception as e:
+				return jsonify({
+					'status': 'failed',
+					'message': 'Update failed'
+				})
+	if request.method == 'DELETE':
+		try:
+			db.session.delete(person)
+			db.session.commit()
+			status = 'success'
+			message = 'User deleted successfully'
+		except Exception as e:
+			return jsonify({
+				'status': 'failed',
+				'message': 'Deletion failed'
+			})
 	return jsonify({
-		'status': 'success',
-		'users': data
+		'status': status,
+		'message': message
 	})
 
 @app.route("/login", methods=['POST'])
 def login():
 	status = ''
+	privilege = ''
 	message = ''
 	try:
 		post_data = request.get_json()
 		email = post_data.get('email')
 		password = post_data.get('password')
 		loginPerson = User.query.filter_by(email=email).first()
+		if loginPerson.blocked == True:
+			return jsonify({
+				'status': 'failed',
+				'message': 'User is blocked',
+			})
 		if (loginPerson.password) == password:
 			status = 'success'
 			message = 'User Authenticated'
 		else:
 			status = 'failed'
 			message = 'Cannot Authenticate'
+		privilege = loginPerson.privilege
 	except Exception as e:
 			return jsonify({
 				'status': 'failed',
@@ -109,6 +180,7 @@ def login():
 			})
 	return jsonify({
 		'status': status,
+		'privilege': privilege,
 		'message': message
 	})
 

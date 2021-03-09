@@ -1,8 +1,13 @@
 <template>
-  <div class="login container">
+  <div class="login container text-left">
     <div class="text-center">
       <p>Login to Park</p>
     </div>
+
+    <b-alert v-model="showError" variant="danger" dismissible>
+      {{errorMessage}}
+    </b-alert>
+
     <b-form @submit.prevent="submit">
       <b-form-group
         id="input-group-1"
@@ -50,7 +55,8 @@ export default {
         email: "",
         password: "",
       },
-      showError: false
+      showError: false,
+      errorMessage: '',
     };
   },
   methods: {
@@ -58,9 +64,15 @@ export default {
     checkUser(payload) {
       const path = "http://localhost:5000/login";
       axios.post(path, payload).then((response) => {
-        console.log(response)
-        this.logIn(payload); //sends to auth.js
-        this.$router.push("/")
+        if (response.data.status == 'failed') { 
+          this.resetForm();
+          this.showError = true;
+          this.errorMessage = response.data.message
+        } else {
+          payload.privilege = response.data.privilege
+          this.logIn(payload); //sends to auth.js
+          this.$router.push("/")
+        }
       }).catch((error) => {
         console.log(error);
         this.$router.push("/")
@@ -68,14 +80,16 @@ export default {
     },
     submit() {
       sessionStorage.clear()
-      //get data from back end to set email, first name, and last name on auth state
-      //need to send to back end
       const payload = {
         email: this.form.email,
         password: this.form.password
       }
       this.checkUser(payload);
     },
+    resetForm() {
+      this.form.email = ''
+      this.form.password = ''
+    }
   },
 };
 </script>

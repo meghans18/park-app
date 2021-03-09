@@ -1,17 +1,20 @@
 <template>
-  <div id="app container">
-    <b-row id="top-bar" class="row" align-v="center">
+  <div id="app">
+    <div id="top-bar" class="container-fluid">
+      <b-row class="row" align-v="center">
       <b-col class="col-6">
-        <img src="@/assets/fake-logo.png" width="100px" height="100px"/>
+        <img src="@/assets/ParkYellow.png" width="100px" height="100px" align="left"/>
       </b-col>
       <b-col class="col-6">
         <NavBar />
       </b-col>
-    </b-row>
-
-    <div class="row">
-      <router-view/>
+      </b-row>
     </div>
+
+    <div class="container-fluid">
+    <router-view/>
+    </div>
+
   </div>
 </template>
 
@@ -31,10 +34,11 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
+  overflow-x: hidden;
 }
 #top-bar {
   margin-top: 25px;
-  padding-left: 50px;
   margin-bottom: 20px;
+  padding-left: 40px;
 }
 </style>
