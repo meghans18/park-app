@@ -4,6 +4,7 @@ import Home from "../views/Home.vue";
 import Register from "../views/Register";
 import Login from "../views/Login";
 import RentedSpots from '../views/RentedSpots'
+import ManageUsers from '../views/ManageUsers'
 import Ping from "../components/Ping.vue"
 
 Vue.use(VueRouter);
@@ -28,6 +29,11 @@ const routes = [
     path: "/rented-spots",
     name: "Rented Spots",
     component: RentedSpots,
+  },
+  {
+    path: '/manage-users',
+    name: 'Manage Users',
+    component: ManageUsers,
   },
   {
     path: '/ping',

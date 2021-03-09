@@ -4,7 +4,7 @@
       <b-col class="col-12 text-center">
         <div v-if="User">
           <b-alert v-model="showAlert" variant="success" dismissible>
-            Logged in as {{User}}
+            Logged in as {{User}} with privilege {{Privilege}}
           </b-alert>
         </div>
       </b-col>
@@ -35,7 +35,7 @@ export default {
     }
   },
   computed: {
-    ...mapGetters({User: "getEmail"}),
+    ...mapGetters({User: "getEmail", Privilege: "getPrivilege"}),
   },
   methods: {
     checkShowAlert: function() {

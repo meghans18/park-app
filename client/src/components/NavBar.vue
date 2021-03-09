@@ -2,13 +2,29 @@
   <div id="nav">
     <!-- this is for regular privilege for now -->
     <span v-if="isLoggedIn">
-      <b-nav align="right">
-        <b-nav-item><router-link to="/">Home</router-link></b-nav-item>
-        <b-nav-item>Lease Your Spot</b-nav-item>
-        <b-nav-item><router-link to="/rented-spots">Rented Spots</router-link></b-nav-item>
-        <b-nav-item>Register Vehicle</b-nav-item>
-        <b-nav-item><a @click="logout">Logout</a></b-nav-item>
-      </b-nav>
+      <span v-if="userPrivilege=='regular'">
+        <b-nav align="right">
+          <b-nav-item><router-link to="/">Home</router-link></b-nav-item>
+          <b-nav-item>Lease Your Spot</b-nav-item>
+          <b-nav-item><router-link to="/rented-spots">Rented Spots</router-link></b-nav-item>
+          <b-nav-item>Register Vehicle</b-nav-item>
+          <b-nav-item><a @click="logout">Logout</a></b-nav-item>
+        </b-nav>
+      </span>
+      <span v-if="userPrivilege=='admin'">
+        <b-nav align="right">
+          <b-nav-item><router-link to="/">Home</router-link></b-nav-item>
+          <b-nav-item><router-link to="/manage-users">Manage Users</router-link></b-nav-item>
+          <b-nav-item><a @click="logout">Logout</a></b-nav-item>
+        </b-nav>
+      </span>
+      <span v-if="userPrivilege=='towing'">
+        <b-nav align="right">
+          <b-nav-item><router-link to="/">Home</router-link></b-nav-item>
+          <b-nav-item>Manage Spots</b-nav-item>
+          <b-nav-item><a @click="logout">Logout</a></b-nav-item>
+        </b-nav>
+      </span>
     </span>
     <!-- can check for permissions eventually to display different navs for different user levels -->
     <span v-else>
@@ -24,7 +40,8 @@
 export default {
   name: 'NavBar',
   computed : {
-      isLoggedIn : function(){ return this.$store.getters.isAuthenticated}
+      isLoggedIn : function(){ return this.$store.getters.isAuthenticated},
+      userPrivilege: function(){ return this.$store.getters.getPrivilege },
     },
     methods: {
       async logout (){
