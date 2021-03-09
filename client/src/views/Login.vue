@@ -5,7 +5,7 @@
     </div>
 
     <b-alert v-model="showError" variant="danger" dismissible>
-      Login information does not match any records
+      {{errorMessage}}
     </b-alert>
 
     <b-form @submit.prevent="submit">
@@ -55,7 +55,8 @@ export default {
         email: "",
         password: "",
       },
-      showError: false
+      showError: false,
+      errorMessage: '',
     };
   },
   methods: {
@@ -66,6 +67,7 @@ export default {
         if (response.data.status == 'failed') { 
           this.resetForm();
           this.showError = true;
+          this.errorMessage = response.data.message
         } else {
           payload.privilege = response.data.privilege
           this.logIn(payload); //sends to auth.js
