@@ -26,183 +26,239 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
 
-#models
+
+# models
 class User(db.Model):
-	id = db.Column(db.Integer, primary_key=True)
-	first_name = db.Column(db.String(80), nullable=False)
-	last_name = db.Column(db.String(80), nullable=False)
-	email = db.Column(db.String(120), unique=True, nullable=False)
-	password = db.Column(db.String(120), nullable=False)
-	privilege = db.Column(db.String(120), nullable=False) # 'regular', 'admin', 'towing'
-	blocked = db.Column(db.Boolean, default=False)
+    id = db.Column(db.Integer, primary_key=True)
+    first_name = db.Column(db.String(80), nullable=False)
+    last_name = db.Column(db.String(80), nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password = db.Column(db.String(120), nullable=False)
+    privilege = db.Column(db.String(120), nullable=False)  # 'regular', 'admin', 'towing'
+    blocked = db.Column(db.Boolean, default=False)
 
-	def __repr__(self):
-		return '<User %r>' % self.email
+    def __repr__(self):
+        return '<User %r>' % self.email
 
-# class Spot(db.Model):
-#     id = db.Column(db.Integer, primary_key=True)
-#     addressNumber = db.Column(db.Integer, nullable=False)
-#     street = db.Column(db.String(80), nullable=False)
-#     city = db.Column(db.String(50), unique=True, nullable=False)
-#     state = db.Column(db.String(20), nullable=False, default="user")
-#     zipCode = db.Column(db.Integer, nullable=False)
-#     spotNumber = db.Column(db.Integer, nullable=True)
 
-#     def __repr__(self):
-#         return '<Spot %r>' % self.id
+class Spot(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, nullable=False)
+    address_number = db.Column(db.Integer, nullable=False)
+    street = db.Column(db.String(80), nullable=False)
+    city = db.Column(db.String(50), unique=True, nullable=False)
+    state = db.Column(db.String(20), nullable=False)
+    zipcode = db.Column(db.Integer, nullable=False)
+    latitude = db.Column(db.Decimal, nullable=False)
+    longitude = db.Column(db.Decimal, nullable=False)
+    spot_number = db.Column(db.Integer, nullable=True)
 
-		
+    def __repr__(self):
+        return '<Spot %r>' % self.id
+
+
+class Vehicle(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, nullable=False)
+    plate_number = db.Column(db.String(10), nullable=False)
+    make = db.Column(db.String(20), nullable=False)
+    model = db.Column(db.String(30), nullable=False)
+    color = db.Column(db.String(20), nullable=False)
+
+    def __repr__(self):
+        return '<Spot %r>' % self.plate_number
+
+
 # enable CORS
 CORS(app, resources={r'/*': {'origins': '*'}})
 
-#routes
+
+# routes
 @app.route("/register", methods=['GET', 'POST'])
 @app.route("/books", methods=["GET"])
-def return_books():
-	return jsonify({
-		'status': 'success',
-		'books': BOOKS
-	})
-
 @app.route("/users", methods=['GET', 'POST'])
 def register():
-	if request.method == 'POST':
-		try:
-			post_data = request.get_json()
-			user = User(
-				first_name=post_data.get('first_name'),
-				last_name=post_data.get('last_name'),
-				email=post_data.get('email'),
-				password=post_data.get('password'),
-				privilege='regular'
-			)
-			db.session.add(user)
-			db.session.commit()
-			return jsonify({
-				'status': 'success',
-				'privilege': 'regular',
-				'message': 'Registration successful'
-			})
-		except Exception as e:
-			return jsonify({
-				'status': 'failed',
-				'message': 'User already exists'
-			})
-	else:
-		data = []
-		users = User.query.all()
-		for user in users:
-			data.append({
-				"id": user.id,
-				"email": user.email,
-				"first_name": user.first_name,
-				"last_name": user.last_name,
-				"privilege": user.privilege,
-				"blocked": user.blocked,
-			})
-		return jsonify({
-			'status': 'success',
-			'users': data
-		})
+    if request.method == 'POST':
+        try:
+            post_data = request.get_json()
+            user = User(
+                first_name=post_data.get('first_name'),
+                last_name=post_data.get('last_name'),
+                email=post_data.get('email'),
+                password=post_data.get('password'),
+                privilege='regular'
+            )
+            db.session.add(user)
+            db.session.commit()
+            return jsonify({
+                'status': 'success',
+                'privilege': 'regular',
+                'message': 'Registration successful'
+            })
+        except Exception as e:
+            return jsonify({
+                'status': 'failed',
+                'message': 'User already exists'
+            })
+    else:
+        data = []
+        users = User.query.all()
+        for user in users:
+            data.append({
+                "id": user.id,
+                "email": user.email,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "privilege": user.privilege,
+                "blocked": user.blocked,
+            })
+        return jsonify({
+            'status': 'success',
+            'users': data
+        })
+
 
 @app.route('/users/<user_id>', methods=['PUT', 'DELETE'])
 def single_book(user_id):
-	status = ''
-	message = ''
-	person = User.query.filter_by(id=user_id).first()
-	if request.method == 'PUT':
-		message = request.get_json().get('message')
-		if message == 'blockUser':
-			try:
-				person.blocked = not person.blocked
-				db.session.commit()
-				status = 'success'
-				message = 'User updated successfully'
-			except Exception as e:
-				return jsonify({
-					'status': 'failed',
-					'message': 'Update failed'
-				})
-		if message == 'changeTowing':
-			try:
-				if person.privilege == 'towing': person.privilege = 'regular'
-				else: person.privilege = 'towing'
-				db.session.commit()
-				status = 'success'
-				message = 'User updated successfully'
-			except Exception as e:
-				return jsonify({
-					'status': 'failed',
-					'message': 'Update failed'
-				})
-	if request.method == 'DELETE':
-		try:
-			db.session.delete(person)
-			db.session.commit()
-			status = 'success'
-			message = 'User deleted successfully'
-		except Exception as e:
-			return jsonify({
-				'status': 'failed',
-				'message': 'Deletion failed'
-			})
-	return jsonify({
-		'status': status,
-		'message': message
-	})
+    status = ''
+    message = ''
+    person = User.query.filter_by(id=user_id).first()
+    if request.method == 'PUT':
+        message = request.get_json().get('message')
+        if message == 'blockUser':
+            try:
+                person.blocked = not person.blocked
+                db.session.commit()
+                status = 'success'
+                message = 'User updated successfully'
+            except Exception as e:
+                return jsonify({
+                    'status': 'failed',
+                    'message': 'Update failed'
+                })
+        if message == 'changeTowing':
+            try:
+                if person.privilege == 'towing':
+                    person.privilege = 'regular'
+                else:
+                    person.privilege = 'towing'
+                db.session.commit()
+                status = 'success'
+                message = 'User updated successfully'
+            except Exception as e:
+                return jsonify({
+                    'status': 'failed',
+                    'message': 'Update failed'
+                })
+    if request.method == 'DELETE':
+        try:
+            db.session.delete(person)
+            db.session.commit()
+            status = 'success'
+            message = 'User deleted successfully'
+        except Exception as e:
+            return jsonify({
+                'status': 'failed',
+                'message': 'Deletion failed'
+            })
+    return jsonify({
+        'status': status,
+        'message': message
+    })
+
 
 @app.route("/login", methods=['POST'])
 def login():
-	status = ''
-	privilege = ''
-	message = ''
-	try:
-		post_data = request.get_json()
-		email = post_data.get('email')
-		password = post_data.get('password')
-		loginPerson = User.query.filter_by(email=email).first()
-		if loginPerson.blocked == True:
-			return jsonify({
-				'status': 'failed',
-				'message': 'User is blocked',
-			})
-		if (loginPerson.password) == password:
-			status = 'success'
-			message = 'User Authenticated'
-		else:
-			status = 'failed'
-			message = 'Cannot Authenticate'
-		privilege = loginPerson.privilege
-	except Exception as e:
-			return jsonify({
-				'status': 'failed',
-				'message': "User doesn't exist"
-			})
-	return jsonify({
-		'status': status,
-		'privilege': privilege,
-		'message': message
-	})
+    status = ''
+    privilege = ''
+    message = ''
+    try:
+        post_data = request.get_json()
+        email = post_data.get('email')
+        password = post_data.get('password')
+        loginPerson = User.query.filter_by(email=email).first()
+        if loginPerson.blocked == True:
+            return jsonify({
+                'status': 'failed',
+                'message': 'User is blocked',
+            })
+        if (loginPerson.password) == password:
+            status = 'success'
+            message = 'User Authenticated'
+        else:
+            status = 'failed'
+            message = 'Cannot Authenticate'
+        privilege = loginPerson.privilege
+    except Exception as e:
+        return jsonify({
+            'status': 'failed',
+            'message': "User doesn't exist"
+        })
+    return jsonify({
+        'status': status,
+        'privilege': privilege,
+        'message': message
+    })
+
 
 @app.route("/spot", methods=['POST'])
 def spot():
-	response_object = {'status': 'success'}
-	if request.method == 'POST':
-		post_data = request.get_json()
-		user.append({
-			'address_number': post_data.get('address_number'),
-		    'street': post_data.get('street'),
-			'city': post_data.get('city'),
-			'state': post_data.get('state'),
-			'zip_code': post_data.get('zip_code'),
-			'spot_number': post_data.get('spot_number')
-		})
-		response_object['message'] = 'Spot Registered!'
+    if request.method == 'POST':
+        try:
+            post_data = request.get_json()
+            spot = Spot(
+                address_number=post_data.get('address_number'),
+                street=post_data.get('street'),
+                city=post_data.get('city'),
+                state=post_data.get('state'),
+                zipcode=post_data.get('zipcode'),
+                latitude=post_data.get('latitude'),
+                longitude=post_data.get('longitude'),
+                spot_number=post_data.get('spot_number')
+
+            )
+            db.session.add(spot)
+            db.session.commit()
+            return jsonify({
+                'status': 'success',
+                'message': 'Spot Registration successful'
+            })
+        except Exception as e:
+            return jsonify({
+                'status': 'failed',
+                'message': 'Spot Already Exists'
+            })
+
+
+@app.route("/vehicle", methods=['POST'])
+def spot():
+    if request.method == 'POST':
+        try:
+            post_data = request.get_json()
+            vehicle = Vehicle(
+                plate_number=post_data.get('plate_number'),
+                make=post_data.get('make'),
+                model=post_data.get('model'),
+                color=post_data.get('color'),
+
+            )
+            db.session.add(vehicle)
+            db.session.commit()
+            return jsonify({
+                'status': 'success',
+                'message': 'Vehicle Registration successful'
+            })
+        except Exception as e:
+            return jsonify({
+                'status': 'failed',
+                'message': 'Vehicle Already Exists'
+            })
 
 
 @app.route("/")
 def home():
-	return "hello this is home page"
+    return "hello this is home page"
+
 
 # @app.route("/ping", methods=["GET", "POST"])
 # def practice():
@@ -228,6 +284,6 @@ def home():
 # 		'status': status,
 # 		'books': books
 # 	})
-  
+
 if __name__ == "__main__":
     app.run()
