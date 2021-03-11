@@ -26,30 +26,7 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
 
-BOOKS = [
-	{
-		'title': 'On the Road',
-		'author': 'Jack Kerouac',
-		'read': True
-	}
-]
-
-USERS = [
-	{
-		'first_name': 'Cameron',
-		'last_name': 'Bahl',
-		'email': 'cbahl@uiowa.edu',
-		'password': 'password'
-	}
-]
-
 #models
-class Book(db.Model):
-    title = db.Column(db.String(80), unique=True, nullable=False, primary_key=True)
-
-    def __repr__(self):
-        return "<Title: {}>".format(self.title)
-
 class User(db.Model):
 	id = db.Column(db.Integer, primary_key=True)
 	first_name = db.Column(db.String(80), nullable=False)
@@ -78,6 +55,8 @@ class User(db.Model):
 # enable CORS
 CORS(app, resources={r'/*': {'origins': '*'}})
 
+#routes
+@app.route("/register", methods=['GET', 'POST'])
 @app.route("/books", methods=["GET"])
 def return_books():
 	return jsonify({
@@ -225,30 +204,30 @@ def spot():
 def home():
 	return "hello this is home page"
 
-@app.route("/ping", methods=["GET", "POST"])
-def practice():
-	status = 'success'
-	if request.method == 'POST':
-		try:
-			post_data = request.get_json()
-			book = Book(title = post_data.get("title"))
-			db.session.add(book)
-			db.session.commit()
-		except Exception as e:
-			return jsonify({
-				'status': 'failed',
-				'message': 'duplicate book title'
-			})
-	data = []
-	books = Book.query.all()
-	for book in books:
-		data.append({
-			"title": book.title,
-		})
-	return jsonify({
-		'status': status,
-		'books': books
-	})
+# @app.route("/ping", methods=["GET", "POST"])
+# def practice():
+# 	status = 'success'
+# 	if request.method == 'POST':
+# 		try:
+# 			post_data = request.get_json()
+# 			book = Book(title = post_data.get("title"))
+# 			db.session.add(book)
+# 			db.session.commit()
+# 		except Exception as e:
+# 			return jsonify({
+# 				'status': 'failed',
+# 				'message': 'duplicate book title'
+# 			})
+# 	data = []
+# 	books = Book.query.all()
+# 	for book in books:
+# 		data.append({
+# 			"title": book.title,
+# 		})
+# 	return jsonify({
+# 		'status': status,
+# 		'books': books
+# 	})
   
 if __name__ == "__main__":
     app.run()
