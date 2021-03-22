@@ -15,13 +15,14 @@
         <GoogleMap />
       </b-col>
       <b-col class="col-6" style="height: 100%; overflow-y: scroll">
-        <SpotList />
+        <spot-list :spots="this.spots"></spot-list>
       </b-col>
     </div>
   </div>
 </template>
 <script>
 import { mapGetters } from "vuex";
+import axios from 'axios'
 import GoogleMap from '@/components/GoogleMap.vue'
 import SpotList from '@/components/SpotList.vue'
 
@@ -34,6 +35,7 @@ export default {
   data() {
     return {
       showAlert: false,
+      spots: null,
     }
   },
   computed: {
@@ -47,7 +49,18 @@ export default {
       } else {
         this.showAlert = false;
       }
-    }
+    },
+    getAllSpots() {
+      const path = 'http://localhost:5000/spots';
+      axios.get(path).then((response) => {
+          this.spots = response.data.spots
+      }).catch((error) => {
+          console.log(error);
+      });
+    },
+  },
+  created: function() {
+    this.getAllSpots();
   },
   mounted: function() {
     this.checkShowAlert();

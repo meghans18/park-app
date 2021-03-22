@@ -25,30 +25,12 @@
 </template>
 
 <script>
-import axios from 'axios'
 export default {
     name: 'SpotList',
     computed: {
       isLoggedIn : function(){ return this.$store.getters.isAuthenticated},
     },
-    data() {
-        return {
-            spots: null,
-        }
-    },
-    methods: {
-        getAllSpots() {
-            const path = 'http://localhost:5000/spots';
-            axios.get(path).then((response) => {
-                this.spots = response.data.spots
-            }).catch((error) => {
-                console.log(error);
-            });
-        },
-    },
-    created: function() {
-      this.getAllSpots();
-    }
+    props: ['spots'],
 }
 </script>
 
