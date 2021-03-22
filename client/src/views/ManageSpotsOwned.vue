@@ -83,6 +83,15 @@
                                     placeholder="Enter zipcode:">
                     </b-form-input>
                 </b-form-group>
+                <b-form-group id="form-spotNumber-group"
+                                label="Spot Number (Optional):"
+                                label-for="form-spotNumber-input">
+                    <b-form-input id="form-spotNumber-input"
+                                    type="number"
+                                    v-model="form.spotNumber"
+                                    placeholder="Enter the spot's number (if applicable):">
+                    </b-form-input>
+                </b-form-group>
                 <b-form-group id="form-price-group"
                                 label="Price (per day):"
                                 label-for="form-price-input">
@@ -111,33 +120,43 @@ export default {
                 city: '',
                 state: '',
                 zipcode: '',
+                spotNumber: '',
                 price: '',
             },
-            spots: [
-                {
-                    id: 1,
-                    addressNum: 1,
-                    street: 'Davenport St',
-                    city: 'Grundy Center',
-                    state: 'Iowa',
-                    zipcode: 50613,
-                    price: 300
-                },
-                {
-                    id: 2,
-                    addressNum: 239,
-                    street: 'Rainbow Ave',
-                    city: 'Coralville',
-                    state: 'Illinois',
-                    zipcode: 52245,
-                    price: 129
-                },
-            ],
+            spots: '',
         }
     },
     methods: {
+        // addUser(payload) {
+        //     const path = 'http://localhost:5000/users';
+        //     axios.post(path, payload).then((response) => {
+        //         console.log(response)
+        //         if (response.data.status == 'failed') { 
+        //         this.resetForm();
+        //         this.showError = true;
+        //         } else {
+        //         payload.privilege = response.data.privilege
+        //         console.log(payload)
+        //         this.logIn(payload); //sends to auth.js
+        //         this.$router.push("/")
+        //         }
+        //     }).catch((error) => {
+        //         console.log(error);
+        //         this.$router.push("/")
+        //     });
+        // },
         onSubmit() {
-            //do submit to database stuff here
+            const payload = {
+                email: this.$store.getters.getEmail,
+                addressNum: this.form.addressNum,
+                street: this.form.street,
+                city: this.form.city,
+                state: this.form.state,
+                zipcode: this.form.zipcode,
+                spotNumber: this.form.spotNumber,
+                price: this.form.price,
+            };
+            this.registerSpot(payload);
         },
         onReset() {
             this.form.addressNum = ''
@@ -145,6 +164,7 @@ export default {
             this.form.city = ''
             this.form.state = ''
             this.form.zipcode = ''
+            this.form.spotNumber = ''
             this.form.price = ''
         }
     }

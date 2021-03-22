@@ -16,7 +16,7 @@
               <td>
                 <div class="btn-group" role="group">
                   <!-- check if user logged in and change button accordingly -->
-                  <button type="button" class="btn btn-danger btn-md">Delete Spot</button>
+                  <span v-if="isLoggedIn"><button type="button" class="btn btn-success btn-md">Rent Spot</button></span>
                 </div>
               </td>
             </tr>
@@ -28,6 +28,9 @@
 <script>
 export default {
     name: 'SpotList',
+    computed: {
+      isLoggedIn : function(){ return this.$store.getters.isAuthenticated},
+    },
     data() {
         return {
             spots: [
