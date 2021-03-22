@@ -187,7 +187,31 @@ def login():
         'message': message
     })
 
-@app.route("/spot", methods=['POST'])
+@app.route('/spots/<user_email>', methods=['GET'])
+def userRegisteredSpots(user_email):
+    data = []
+    user_id = User.query.filter_by(email=user_email).first().id
+    spots = Spot.query.filter_by(userId = user_id).all()
+    for spot in spots:
+        data.append({
+            "id": spot.id,
+            "userId": spot.userId,
+            "addressNum": spot.addressNumber,
+            "street": spot.street,
+            "city": spot.city,
+            "state": spot.state,
+            "zipcode": spot.zipCode,
+            "spotNumber": spot.spotNumber,
+            "latitude": spot.latitude,
+            "longitude": spot.longitude,
+            "price": spot.price
+        })
+    return jsonify({
+        'status': 'success',
+        'spots': data
+    })
+
+@app.route("/spots", methods=['GET','POST'])
 def spot():
     if request.method == 'POST':
         try:
@@ -219,6 +243,27 @@ def spot():
                 'status': 'failed',
                 'message': 'Failed to add spot'
             })
+    else:
+        data = []
+        spots = Spot.query.all()
+        for spot in spots:
+            data.append({
+                "id": spot.id,
+                "userId": spot.userId,
+                "addressNum": spot.addressNumber,
+                "street": spot.street,
+                "city": spot.city,
+                "state": spot.state,
+                "zipcode": spot.zipCode,
+                "spotNumber": spot.spotNumber,
+                "latitude": spot.latitude,
+                "longitude": spot.longitude,
+                "price": spot.price
+            })
+        return jsonify({
+            'status': 'success',
+            'spots': data
+        })
 
 
 @app.route("/")

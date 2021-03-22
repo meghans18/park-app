@@ -1,6 +1,5 @@
 <template>
     <div id="spotList">
-        <p>List of available spots</p>
         <table class="table table-hover">
           <thead>
             <tr>
@@ -26,6 +25,7 @@
 </template>
 
 <script>
+import axios from 'axios'
 export default {
     name: 'SpotList',
     computed: {
@@ -33,27 +33,21 @@ export default {
     },
     data() {
         return {
-            spots: [
-                {
-                    id: 1,
-                    addressNum: 1,
-                    street: 'Davenport St',
-                    city: 'Grundy Center',
-                    state: 'Iowa',
-                    zipcode: 50613,
-                    price: 300
-                },
-                {
-                    id: 2,
-                    addressNum: 239,
-                    street: 'Rainbow Ave',
-                    city: 'Coralville',
-                    state: 'Illinois',
-                    zipcode: 52245,
-                    price: 129
-                },
-            ],
+            spots: null,
         }
+    },
+    methods: {
+        getAllSpots() {
+            const path = 'http://localhost:5000/spots';
+            axios.get(path).then((response) => {
+                this.spots = response.data.spots
+            }).catch((error) => {
+                console.log(error);
+            });
+        },
+    },
+    created: function() {
+      this.getAllSpots();
     }
 }
 </script>

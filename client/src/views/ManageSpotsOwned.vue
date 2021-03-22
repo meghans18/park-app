@@ -1,5 +1,8 @@
 <template>
     <div id="manageSpotsOwned" class="container">
+        <b-alert v-model="showError" variant="danger" dismissible>
+            Failed to register spot!
+        </b-alert>
         <div class="text-center">
             <p>Manage/Add Spots for Rent</p>
         </div>
@@ -124,26 +127,30 @@ export default {
                 spotNumber: '',
                 price: '',
             },
-            spots: '',
+            spots: null,
+            showError: false,
         }
     },
     methods: {
+        getUserRegisteredSpots() {
+            let userEmail = this.$store.getters.getEmail
+            const path = `http://localhost:5000/spots/${userEmail}`
+            axios.get(path).then((response) => {
+                this.spots = response.data.spots
+            })
+        },
         addSpot(payload) {
             console.log(payload)
-            const path = 'http://localhost:5000/spot';
+            const path = 'http://localhost:5000/spots';
             axios.post(path, payload).then((response) => {
-                console.log(response)
-                // if (response.data.status == 'failed') { 
-                //     this.resetForm();
-                //     this.showError = true;
-                // } else {
-                //     payload.privilege = response.data.privilege
-                //     console.log(payload)
-                //     this.logIn(payload); //sends to auth.js
-                //     this.$router.push("/")
-                // }
-                this.onReset()
-                this.$bvModal.hide('spot-modal')
+                if (response.data.status == 'failed') { 
+                    this.onReset();
+                    this.showError = true;
+                } else {
+                    this.onReset()
+                    this.$bvModal.hide('spot-modal')
+                    this.getUserRegisteredSpots();
+                }
             }).catch((error) => {
                 console.log(error);
                 this.$router.push("/")
@@ -171,6 +178,9 @@ export default {
             this.form.spotNumber = ''
             this.form.price = ''
         }
+    },
+    created: function() {
+        this.getUserRegisteredSpots();
     }
 }
 </script>
