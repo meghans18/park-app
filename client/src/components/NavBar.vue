@@ -5,7 +5,7 @@
       <span v-if="userPrivilege=='regular'">
         <b-nav align="right">
           <b-nav-item><router-link to="/">Home</router-link></b-nav-item>
-          <b-nav-item>Lease Your Spot</b-nav-item>
+          <b-nav-item><router-link to="/manage-spots-owned">Manage/Add Spots</router-link></b-nav-item>
           <b-nav-item><router-link to="/rented-spots">Rented Spots</router-link></b-nav-item>
           <b-nav-item>Register Vehicle</b-nav-item>
           <b-nav-item><a @click="logout">Logout</a></b-nav-item>
