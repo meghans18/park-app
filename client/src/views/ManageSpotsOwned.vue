@@ -32,7 +32,7 @@
                 title="List a New Spot for Rent"
                 centered
                 hide-footer>
-            <b-form @submit="onSubmit" @reset="onReset" class="w-100">
+            <b-form @submit.prevent="onSubmit" @reset="onReset" class="w-100">
                 <b-form-group id="form-addressNum-group"
                             label="Address #:"
                             label-for="form-addressNum-input">
@@ -110,6 +110,7 @@
 </template>
 
 <script>
+import axios from 'axios'
 export default {
     name: 'ManageSpotsOwned',
     data() {
@@ -127,24 +128,27 @@ export default {
         }
     },
     methods: {
-        // addUser(payload) {
-        //     const path = 'http://localhost:5000/users';
-        //     axios.post(path, payload).then((response) => {
-        //         console.log(response)
-        //         if (response.data.status == 'failed') { 
-        //         this.resetForm();
-        //         this.showError = true;
-        //         } else {
-        //         payload.privilege = response.data.privilege
-        //         console.log(payload)
-        //         this.logIn(payload); //sends to auth.js
-        //         this.$router.push("/")
-        //         }
-        //     }).catch((error) => {
-        //         console.log(error);
-        //         this.$router.push("/")
-        //     });
-        // },
+        addSpot(payload) {
+            console.log(payload)
+            const path = 'http://localhost:5000/spot';
+            axios.post(path, payload).then((response) => {
+                console.log(response)
+                // if (response.data.status == 'failed') { 
+                //     this.resetForm();
+                //     this.showError = true;
+                // } else {
+                //     payload.privilege = response.data.privilege
+                //     console.log(payload)
+                //     this.logIn(payload); //sends to auth.js
+                //     this.$router.push("/")
+                // }
+                this.onReset()
+                this.$bvModal.hide('spot-modal')
+            }).catch((error) => {
+                console.log(error);
+                this.$router.push("/")
+            });
+        },
         onSubmit() {
             const payload = {
                 email: this.$store.getters.getEmail,
@@ -156,7 +160,7 @@ export default {
                 spotNumber: this.form.spotNumber,
                 price: this.form.price,
             };
-            this.registerSpot(payload);
+            this.addSpot(payload);
         },
         onReset() {
             this.form.addressNum = ''

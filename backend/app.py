@@ -11,6 +11,7 @@ import os
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
+from geopy.geocoders import Nominatim
 
 # configuration
 DEBUG = True
@@ -28,206 +29,201 @@ db = SQLAlchemy(app)
 
 #models
 class User(db.Model):
-	id = db.Column(db.Integer, primary_key=True)
-	first_name = db.Column(db.String(80), nullable=False)
-	last_name = db.Column(db.String(80), nullable=False)
-	email = db.Column(db.String(120), unique=True, nullable=False)
-	password = db.Column(db.String(120), nullable=False)
-	privilege = db.Column(db.String(120), nullable=False) # 'regular', 'admin', 'towing'
-	blocked = db.Column(db.Boolean, default=False)
+    id = db.Column(db.Integer, primary_key=True)
+    first_name = db.Column(db.String(80), nullable=False)
+    last_name = db.Column(db.String(80), nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password = db.Column(db.String(120), nullable=False)
+    privilege = db.Column(db.String(120), nullable=False) # 'regular', 'admin', 'towing'
+    blocked = db.Column(db.Boolean, default=False)
 
-	def __repr__(self):
-		return '<User %r>' % self.email
+    def __repr__(self):
+        return '<User %r>' % self.email
 
-# class Spot(db.Model):
-#     id = db.Column(db.Integer, primary_key=True)
-#     addressNumber = db.Column(db.Integer, nullable=False)
-#     street = db.Column(db.String(80), nullable=False)
-#     city = db.Column(db.String(50), unique=True, nullable=False)
-#     state = db.Column(db.String(20), nullable=False, default="user")
-#     zipCode = db.Column(db.Integer, nullable=False)
-#     spotNumber = db.Column(db.Integer, nullable=True)
+class Spot(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    userId = db.Column(db.Integer, nullable=False)
+    addressNumber = db.Column(db.Integer, nullable=False)
+    street = db.Column(db.String(80), nullable=False)
+    city = db.Column(db.String(50), nullable=False)
+    state = db.Column(db.String(20), nullable=False,)
+    zipCode = db.Column(db.Integer, nullable=False)
+    spotNumber = db.Column(db.Integer, nullable=True)
+    latitude = db.Column(db.Float, nullable=False)
+    longitude = db.Column(db.Float, nullable=False)
+    price = db.Column(db.Integer, nullable=False)
 
-#     def __repr__(self):
-#         return '<Spot %r>' % self.id
+    def __repr__(self):
+        return '<Spot %r>' % self.id
 
-		
+
 # enable CORS
 CORS(app, resources={r'/*': {'origins': '*'}})
 
-#routes
-@app.route("/register", methods=['GET', 'POST'])
-@app.route("/books", methods=["GET"])
-def return_books():
-	return jsonify({
-		'status': 'success',
-		'books': BOOKS
-	})
+# helper methods
+def find_lat_long(address):
+    geolocator = Nominatim(user_agent="park-app")
+    location = geolocator.geocode(address)
+    return [location.latitude, location.longitude]
 
+#routes
 @app.route("/users", methods=['GET', 'POST'])
 def register():
-	if request.method == 'POST':
-		try:
-			post_data = request.get_json()
-			user = User(
-				first_name=post_data.get('first_name'),
-				last_name=post_data.get('last_name'),
-				email=post_data.get('email'),
-				password=post_data.get('password'),
-				privilege='regular'
-			)
-			db.session.add(user)
-			db.session.commit()
-			return jsonify({
-				'status': 'success',
-				'privilege': 'regular',
-				'message': 'Registration successful'
-			})
-		except Exception as e:
-			return jsonify({
-				'status': 'failed',
-				'message': 'User already exists'
-			})
-	else:
-		data = []
-		users = User.query.all()
-		for user in users:
-			data.append({
-				"id": user.id,
-				"email": user.email,
-				"first_name": user.first_name,
-				"last_name": user.last_name,
-				"privilege": user.privilege,
-				"blocked": user.blocked,
-			})
-		return jsonify({
-			'status': 'success',
-			'users': data
-		})
+    if request.method == 'POST':
+        try:
+            post_data = request.get_json()
+            user = User(
+                first_name=post_data.get('first_name'),
+                last_name=post_data.get('last_name'),
+                email=post_data.get('email'),
+                password=post_data.get('password'),
+                privilege='regular'
+            )
+            db.session.add(user)
+            db.session.commit()
+            return jsonify({
+                'status': 'success',
+                'privilege': 'regular',
+                'message': 'Registration successful'
+            })
+        except Exception as e:
+            return jsonify({
+                'status': 'failed',
+                'message': 'User already exists'
+            })
+    else:
+        data = []
+        users = User.query.all()
+        for user in users:
+            data.append({
+                "id": user.id,
+                "email": user.email,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "privilege": user.privilege,
+                "blocked": user.blocked,
+            })
+        return jsonify({
+            'status': 'success',
+            'users': data
+        })
 
 @app.route('/users/<user_id>', methods=['PUT', 'DELETE'])
 def single_book(user_id):
-	status = ''
-	message = ''
-	person = User.query.filter_by(id=user_id).first()
-	if request.method == 'PUT':
-		message = request.get_json().get('message')
-		if message == 'blockUser':
-			try:
-				person.blocked = not person.blocked
-				db.session.commit()
-				status = 'success'
-				message = 'User updated successfully'
-			except Exception as e:
-				return jsonify({
-					'status': 'failed',
-					'message': 'Update failed'
-				})
-		if message == 'changeTowing':
-			try:
-				if person.privilege == 'towing': person.privilege = 'regular'
-				else: person.privilege = 'towing'
-				db.session.commit()
-				status = 'success'
-				message = 'User updated successfully'
-			except Exception as e:
-				return jsonify({
-					'status': 'failed',
-					'message': 'Update failed'
-				})
-	if request.method == 'DELETE':
-		try:
-			db.session.delete(person)
-			db.session.commit()
-			status = 'success'
-			message = 'User deleted successfully'
-		except Exception as e:
-			return jsonify({
-				'status': 'failed',
-				'message': 'Deletion failed'
-			})
-	return jsonify({
-		'status': status,
-		'message': message
-	})
+    status = ''
+    message = ''
+    person = User.query.filter_by(id=user_id).first()
+    if request.method == 'PUT':
+        message = request.get_json().get('message')
+        if message == 'blockUser':
+            try:
+                person.blocked = not person.blocked
+                db.session.commit()
+                status = 'success'
+                message = 'User updated successfully'
+            except Exception as e:
+                return jsonify({
+                    'status': 'failed',
+                    'message': 'Update failed'
+                })
+        if message == 'changeTowing':
+            try:
+                if person.privilege == 'towing': person.privilege = 'regular'
+                else: person.privilege = 'towing'
+                db.session.commit()
+                status = 'success'
+                message = 'User updated successfully'
+            except Exception as e:
+                return jsonify({
+                    'status': 'failed',
+                    'message': 'Update failed'
+                })
+    if request.method == 'DELETE':
+        try:
+            db.session.delete(person)
+            db.session.commit()
+            status = 'success'
+            message = 'User deleted successfully'
+        except Exception as e:
+            return jsonify({
+                'status': 'failed',
+                'message': 'Deletion failed'
+            })
+    return jsonify({
+        'status': status,
+        'message': message
+    })
 
 @app.route("/login", methods=['POST'])
 def login():
-	status = ''
-	privilege = ''
-	message = ''
-	try:
-		post_data = request.get_json()
-		email = post_data.get('email')
-		password = post_data.get('password')
-		loginPerson = User.query.filter_by(email=email).first()
-		if loginPerson.blocked == True:
-			return jsonify({
-				'status': 'failed',
-				'message': 'User is blocked',
-			})
-		if (loginPerson.password) == password:
-			status = 'success'
-			message = 'User Authenticated'
-		else:
-			status = 'failed'
-			message = 'Cannot Authenticate'
-		privilege = loginPerson.privilege
-	except Exception as e:
-			return jsonify({
-				'status': 'failed',
-				'message': "User doesn't exist"
-			})
-	return jsonify({
-		'status': status,
-		'privilege': privilege,
-		'message': message
-	})
+    status = ''
+    privilege = ''
+    message = ''
+    try:
+        post_data = request.get_json()
+        email = post_data.get('email')
+        password = post_data.get('password')
+        loginPerson = User.query.filter_by(email=email).first()
+        if loginPerson.blocked == True:
+            return jsonify({
+                'status': 'failed',
+                'message': 'User is blocked',
+            })
+        if (loginPerson.password) == password:
+            status = 'success'
+            message = 'User Authenticated'
+        else:
+            status = 'failed'
+            message = 'Cannot Authenticate'
+        privilege = loginPerson.privilege
+    except Exception as e:
+            return jsonify({
+                'status': 'failed',
+                'message': "User doesn't exist"
+            })
+    return jsonify({
+        'status': status,
+        'privilege': privilege,
+        'message': message
+    })
 
 @app.route("/spot", methods=['POST'])
 def spot():
-	response_object = {'status': 'success'}
-	if request.method == 'POST':
-		post_data = request.get_json()
-		user.append({
-			'address_number': post_data.get('address_number'),
-		    'street': post_data.get('street'),
-			'city': post_data.get('city'),
-			'state': post_data.get('state'),
-			'zip_code': post_data.get('zip_code'),
-			'spot_number': post_data.get('spot_number')
-		})
-		response_object['message'] = 'Spot Registered!'
+    if request.method == 'POST':
+        try:
+            post_data = request.get_json()
+            email = post_data.get('email')
+            userId = User.query.filter_by(email=email).first().id
+            address = "" + post_data.get('addressNum') + " " + post_data.get('street') + ", " + post_data.get('city') + ", " + post_data.get('state') + " " + post_data.get('zipcode')
+            latLong = find_lat_long(address)
+            spot = Spot(
+            	userId = userId,
+                addressNumber = post_data.get('addressNum'),
+                street = post_data.get('street'),
+                city = post_data.get('city'),
+                state = post_data.get('state'),
+                zipCode = post_data.get('zipcode'),
+                spotNumber = post_data.get('spotNumber'),
+                latitude = latLong[0],
+                longitude = latLong[1],
+                price = post_data.get('price')
+            )
+            db.session.add(spot)
+            db.session.commit()
+            return jsonify({
+                'status': 'success',
+                'message': 'Spot added!'
+            })
+        except Exception as e:
+            return jsonify({
+                'status': 'failed',
+                'message': 'Failed to add spot'
+            })
 
 
 @app.route("/")
 def home():
-	return "hello this is home page"
+    return "hello this is home page"
 
-# @app.route("/ping", methods=["GET", "POST"])
-# def practice():
-# 	status = 'success'
-# 	if request.method == 'POST':
-# 		try:
-# 			post_data = request.get_json()
-# 			book = Book(title = post_data.get("title"))
-# 			db.session.add(book)
-# 			db.session.commit()
-# 		except Exception as e:
-# 			return jsonify({
-# 				'status': 'failed',
-# 				'message': 'duplicate book title'
-# 			})
-# 	data = []
-# 	books = Book.query.all()
-# 	for book in books:
-# 		data.append({
-# 			"title": book.title,
-# 		})
-# 	return jsonify({
-# 		'status': status,
-# 		'books': books
-# 	})
-  
 if __name__ == "__main__":
     app.run()
