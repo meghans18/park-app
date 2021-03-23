@@ -12,7 +12,7 @@
 
     <div class="row" style="height: 80vh">       
       <b-col class="col-6" style="height: 100%;">
-        <GoogleMap />
+        <google-map :spots="this.spots"></google-map>
       </b-col>
       <b-col class="col-6" style="height: 100%; overflow-y: scroll">
         <spot-list :spots="this.spots"></spot-list>
@@ -30,7 +30,7 @@ export default {
   name: 'Home',
   components: {
     GoogleMap,
-    SpotList,
+    SpotList
   },
   data() {
     return {
