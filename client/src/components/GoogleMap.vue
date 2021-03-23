@@ -31,9 +31,8 @@ export default {
   name: "GoogleMap",
   data() {
     return {
-      // default to Montreal to keep it simple
-      // change this to whatever makes sense
-      center: { lat: 45.508, lng: -73.587 },
+      // default to Iowa City
+      center: { lat: 41.6611, lng: -91.5302 },
       markers: [],
       places: [],
       currentPlace: null
