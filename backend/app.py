@@ -16,6 +16,21 @@ from geopy.geocoders import Nominatim
 # configuration
 DEBUG = True
 
+#If you need it for the front end: https://stripe.com/docs/connect/collect-then-transfer-guide
+#Connect to Stripe Account
+stripe.api_key = "sk_test_51IaQy6CwKcZquRsXVvYz1eY7GlE7iSZqCVBXn9tnyBqjxQXQA6C3pVblvlKRJWpBn8gKgcpI6xbyUqxCAPO5iAZm00x4e83yRb"
+account = stripe.Account.create(
+  type='express',
+)
+
+#Link user to stripe account
+account_links = stripe.AccountLink.create(
+  account=post_data.get('email'),
+  refresh_url='https://example.com/reauth',
+  return_url='https://example.com/return',
+  type=post_data.get('privilege'),
+)
+
 project_dir = os.path.dirname(os.path.abspath(__file__))
 database_file = "sqlite:///{}".format(os.path.join(project_dir, "parkapp.db"))
 
