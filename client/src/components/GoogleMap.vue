@@ -1,40 +1,41 @@
 <template>
   <div>
     <div>
-      <p>Search and add a pin (APP SPECIFIC ACTIONS COMING SOON)</p>
-      <label>
+      <!-- <label>
         <gmap-autocomplete
           @place_changed="setPlace">
         </gmap-autocomplete>
         <button @click="addMarker">Add</button>
-      </label>
-      <br/>
-
+      </label> -->
+      <!-- <br/> -->
+      <!-- <tr v-for="spot in spots" :key="spot.id">
+        <td>setPlace({{spot.latitude}}{{spot.longitude}}), addMarker</td>
+      </tr> -->
     </div>
     <br>
-    <gmap-map
+    <GmapMap
       :center="center"
       :zoom="12"
-      style="width:100%;  height: 600px"
+      style="width: 100%; height: 100vh"
     >
-      <gmap-marker
-        :key="index"
-        v-for="(m, index) in markers"
-        :position="m.position"
-        @click="center=m.position"
-      ></gmap-marker>
-    </gmap-map>
+      <GmapMarker
+        v-for="spot in spots"
+        :key="spot.id"
+        :position="getPosition(spot)"
+        @click="center=spot.position"
+      ></GmapMarker>
+    </GmapMap>
   </div>
 </template>
 
 <script>
 export default {
   name: "GoogleMap",
+  props: ['spots'],
   data() {
     return {
-      // default to Montreal to keep it simple
-      // change this to whatever makes sense
-      center: { lat: 45.508, lng: -73.587 },
+      // default to Iowa City
+      center: { lat: 41.6611, lng: -91.5302 },
       markers: [],
       places: [],
       currentPlace: null
@@ -58,6 +59,12 @@ export default {
         this.places.push(this.currentPlace);
         this.center = marker;
         this.currentPlace = null;
+      }
+    },
+    getPosition: function(spot) {
+      return {
+        lat: parseFloat(spot.latitude), 
+        lng: parseFloat(spot.longitude)
       }
     },
     geolocate: function() {

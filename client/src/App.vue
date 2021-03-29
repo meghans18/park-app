@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <div id="top-bar" class="container-fluid">
+    <div id="top-bar" class="container-fluid sticky-top" style="background-color: white">
       <b-row class="row" align-v="center">
       <b-col class="col-6">
         <img src="@/assets/ParkYellow.png" width="100px" height="100px" align="left"/>
@@ -11,8 +11,10 @@
       </b-row>
     </div>
 
-    <div class="container-fluid">
-    <router-view/>
+    <div class="container-fluid" style="height: 80vh">
+      <div style="height:100%">
+       <router-view/>
+      </div>
     </div>
 
   </div>
@@ -40,5 +42,14 @@ export default {
   margin-top: 25px;
   margin-bottom: 20px;
   padding-left: 40px;
+}
+*::-webkit-scrollbar {
+  display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+* {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
 }
 </style>

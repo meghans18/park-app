@@ -5,6 +5,7 @@ import Register from "../views/Register";
 import Login from "../views/Login";
 import RentedSpots from '../views/RentedSpots'
 import ManageUsers from '../views/ManageUsers'
+import ManageSpotsOwned from '../views/ManageSpotsOwned'
 import Ping from "../components/Ping.vue"
 
 Vue.use(VueRouter);
@@ -34,6 +35,11 @@ const routes = [
     path: '/manage-users',
     name: 'Manage Users',
     component: ManageUsers,
+  },
+  {
+    path: '/manage-spots-owned',
+    name: 'Manage Spots Owned',
+    component: ManageSpotsOwned
   },
   {
     path: '/ping',
