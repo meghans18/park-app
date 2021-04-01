@@ -6,6 +6,7 @@
 # exit()
 
 # python app.py (runs application on localhost:5000)
+# accepting payments https://stripe.com/docs/payments/accept-a-payment?integration=checkout
 
 import os
 from flask import Flask, jsonify, request
@@ -50,6 +51,19 @@ class User(db.Model):
 
 #     def __repr__(self):
 #         return '<Spot %r>' % self.id
+
+class Reservation(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    owner_id = db.Column(db.Integer, ForeignKey('user.id')
+    reservation_id = db.Column(db.Integer, ForeignKey('user.id')
+    spot_id = db.Column(db.Integer, ForeignKey('user.id')
+    start_date = db.Column(db.Date)
+    start_time = db.Column(db.Time)
+    end_date = db.Column(db.Date)
+    end_time = db.Column(db.Time)
+
+    def __repr__(self):
+    		return '<Reservation %r>' % self.id
 
 		
 # enable CORS
