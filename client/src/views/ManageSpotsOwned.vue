@@ -7,6 +7,7 @@
             <p>Manage/Add Spots for Rent</p>
         </div>
         <button type="button" class="btn btn-success btn-md" v-b-modal.spot-modal>Add a New Spot for Rent</button>
+        <button type="button" class="btn btn-info btn-md" style="margin-left: 15px;" @click="connectAccount()">Connect with Stripe</button>
         <br><br>
         <table class="table table-hover">
           <thead>
@@ -132,6 +133,13 @@ export default {
         }
     },
     methods: {
+        connectAccount() {
+            let userEmail = this.$store.getters.getEmail
+            const path = `http://localhost:5000/connect/${userEmail}`
+            axios.get(path).then((response) => {
+                window.location = response.data.url
+            })
+        },
         getUserRegisteredSpots() {
             let userEmail = this.$store.getters.getEmail
             const path = `http://localhost:5000/spots/${userEmail}`

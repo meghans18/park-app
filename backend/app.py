@@ -8,10 +8,13 @@
 # python app.py (runs application on localhost:5000)
 
 import os
+import stripe
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from geopy.geocoders import Nominatim
+
+stripe.api_key = "sk_test_51IaQy6CwKcZquRsXVvYz1eY7GlE7iSZqCVBXn9tnyBqjxQXQA6C3pVblvlKRJWpBn8gKgcpI6xbyUqxCAPO5iAZm00x4e83yRb"
 
 # configuration
 DEBUG = True
@@ -185,6 +188,25 @@ def login():
         'status': status,
         'privilege': privilege,
         'message': message
+    })
+
+@app.route('/connect/<user_email>', methods=['GET'])
+def connectUser(user_email):
+    user = User.query.filter_by(email=user_email).first()
+    account = stripe.Account.create(
+        type="express",
+        country="US",
+        email=user.email,
+    )
+    account_links = stripe.AccountLink.create(
+        account=account.id,
+        refresh_url='http://localhost:8080/',
+        return_url='http://localhost:8080/manage-spots-owned',
+        type='account_onboarding',
+    )
+    return jsonify({
+        'status':'success',
+        'url':account_links.url
     })
 
 @app.route('/spots/<user_email>', methods=['GET'])
