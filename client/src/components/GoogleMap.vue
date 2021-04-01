@@ -16,7 +16,7 @@
     <GmapMap
       :center="center"
       :zoom="12"
-      style="width: 100%; height: 100vh"
+      style="width: 100%; height: 75vh"
     >
       <GmapMarker
         v-for="spot in spots"
@@ -31,11 +31,11 @@
 <script>
 export default {
   name: "GoogleMap",
-  props: ['spots'],
+  props: ['spots', 'center'],
   data() {
     return {
       // default to Iowa City
-      center: { lat: 41.6611, lng: -91.5302 },
+      // center: { lat: 41.6611, lng: -91.5302 },
       markers: [],
       places: [],
       currentPlace: null

@@ -265,6 +265,27 @@ def spot():
             'spots': data
         })
 
+@app.route('/spot/<spot_id>', methods=['GET'])
+def specificSpot(spot_id):
+    spot = Spot.query.filter_by(id = spot_id).first()
+    data = {
+        "id": spot.id,
+        "userId": spot.userId,
+        "addressNum": spot.addressNumber,
+        "street": spot.street,
+        "city": spot.city,
+        "state": spot.state,
+        "zipcode": spot.zipCode,
+        "spotNumber": spot.spotNumber,
+        "latitude": spot.latitude,
+        "longitude": spot.longitude,
+        "price": spot.price
+    }
+    return jsonify({
+        'status': 'success',
+        'spot': data
+    })
+
 
 @app.route("/")
 def home():

@@ -4,7 +4,7 @@
       <b-col class="col-12 text-center">
         <div v-if="User">
           <b-alert v-model="showAlert" variant="success" dismissible>
-            Logged in as {{User}} with privilege {{Privilege}}
+            Logged in as {{User}}
           </b-alert>
         </div>
       </b-col>
@@ -12,7 +12,7 @@
 
     <div class="row" style="height: 80vh">       
       <b-col class="col-6" style="height: 100%;">
-        <google-map :spots="this.spots"></google-map>
+        <google-map :spots="this.spots" :center="{ lat: 41.6611, lng: -91.5302 }"></google-map>
       </b-col>
       <b-col class="col-6" style="height: 100%; overflow-y: scroll">
         <spot-list :spots="this.spots"></spot-list>

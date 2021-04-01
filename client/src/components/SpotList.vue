@@ -15,7 +15,7 @@
               <td>
                 <div class="btn-group" role="group">
                   <!-- check if user logged in and change button accordingly -->
-                  <span v-if="isLoggedIn"><button type="button" class="btn btn-success btn-md">Rent Spot</button></span>
+                  <span v-if="isLoggedIn"><button type="button" class="btn btn-success btn-md" @click="submit(spot.id)">View Spot</button></span>
                 </div>
               </td>
             </tr>
@@ -31,6 +31,12 @@ export default {
       isLoggedIn : function(){ return this.$store.getters.isAuthenticated},
     },
     props: ['spots'],
+    methods: {
+      submit(el) {
+        this.$router.push({name: 'Spot Info', params: { spot_id: el } })
+        // window.location = "https://www.google.com"
+      }
+    }
 }
 </script>
 
