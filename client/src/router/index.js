@@ -5,6 +5,7 @@ import Register from "../views/Register";
 import Login from "../views/Login";
 import RentedSpots from '../views/RentedSpots'
 import ManageUsers from '../views/ManageUsers'
+import SpotInfo from '../components/SpotInfo'
 import ManageSpotsOwned from '../views/ManageSpotsOwned'
 import Ping from "../components/Ping.vue"
 
@@ -40,6 +41,11 @@ const routes = [
     path: '/manage-spots-owned',
     name: 'Manage Spots Owned',
     component: ManageSpotsOwned
+  },
+  {
+    path: '/spot-info/:spot_id', //add dates selected eventually?
+    name: 'Spot Info',
+    component: SpotInfo,
   },
   {
     path: '/ping',
