@@ -22,7 +22,8 @@
         v-for="spot in spots"
         :key="spot.id"
         :position="getPosition(spot)"
-        @click="center=spot.position"
+        :clickable="true"
+        @click="openInfo(spot.id)"
       ></GmapMarker>
     </GmapMap>
   </div>
@@ -48,6 +49,9 @@ export default {
     // receives a place object via the autocomplete component
     setPlace(place) {
       this.currentPlace = place;
+    },
+    openInfo(spotID) {
+      this.$router.push({name: 'Spot Info', params: { spot_id: spotID }});
     },
     addMarker() {
       if (this.currentPlace) {
