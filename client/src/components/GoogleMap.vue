@@ -42,27 +42,14 @@ export default {
       currentPlace: null
     };
   },
-  mounted() {
-    this.geolocate();
-  },
   methods: {
     // receives a place object via the autocomplete component
     setPlace(place) {
       this.currentPlace = place;
     },
     openInfo(spotID) {
-      this.$router.push({name: 'Spot Info', params: { spot_id: spotID }});
-    },
-    addMarker() {
-      if (this.currentPlace) {
-        const marker = {
-          lat: this.currentPlace.geometry.location.lat(),
-          lng: this.currentPlace.geometry.location.lng()
-        };
-        this.markers.push({ position: marker });
-        this.places.push(this.currentPlace);
-        this.center = marker;
-        this.currentPlace = null;
+      if (this.$store.getters.getEmail) {
+        this.$router.push({name: 'Spot Info', params: { spot_id: spotID }});
       }
     },
     getPosition: function(spot) {
@@ -71,14 +58,6 @@ export default {
         lng: parseFloat(spot.longitude)
       }
     },
-    geolocate: function() {
-      navigator.geolocation.getCurrentPosition(position => {
-        this.center = {
-          lat: position.coords.latitude,
-          lng: position.coords.longitude
-        };
-      });
-    }
   }
 };
 </script>
