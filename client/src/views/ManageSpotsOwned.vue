@@ -4,11 +4,27 @@
             Failed to register spot!
         </b-alert>
         <div class="text-center">
-            <p>Manage/Add Spots for Rent</p>
+            <p style="color: #0a814c; font-size: 2em;">Manage/Add Spots for Rent</p>
         </div>
+
+        <span v-if="isConnected=='no'">
+        <button type="button" class="btn btn-info btn-md" @click="connectAccount()">Connect with Stripe</button>
+        <p style="margin-top: 10px;"><em>In order to list spots and get paid, please click the Connect with Stripe button above.<br> 
+        All payments are processed through Stripe.<br>
+        Please complete all steps.</em></p>
+        </span>
+
+        <span v-if="isConnected=='partly'">
+        <button type="button" class="btn btn-warning btn-md" @click="connectAccount()">Finish Connecting</button>
+        <p style="margin-top: 10px;"><em>You must finish onboarding with Stripe to be able to list spots and get paid.<br>
+        Stripe does not require all information up front so this button may appear when Stripe needs more information.</em></p>
+        </span>
+        
+        <span v-if="isConnected=='yes'">
         <button type="button" class="btn btn-success btn-md" v-b-modal.spot-modal>Add a New Spot for Rent</button>
-        <button type="button" class="btn btn-info btn-md" style="margin-left: 15px;" @click="connectAccount()">Connect with Stripe</button>
-        <br><br>
+        <button type="button" class="btn btn-primary btn-mid" style="margin-left: 10px;">Go to Stripe Dashboard</button>
+        <br>
+        <br>
         <table class="table table-hover">
           <thead>
             <tr>
@@ -29,6 +45,7 @@
             </tr>
           </tbody>
         </table>
+        </span>
 
 
         <b-modal ref="addSpotModal"
@@ -132,6 +149,9 @@ export default {
             showError: false,
         }
     },
+    computed : {
+        isConnected : function(){ return this.$store.getters.getConnection},
+    },
     methods: {
         connectAccount() {
             let userEmail = this.$store.getters.getEmail
@@ -194,8 +214,5 @@ export default {
 </script>
 
 <style scoped>
-p {
-  color: #0a814c;
-  font-size: 2em;
-}
+
 </style>

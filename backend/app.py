@@ -9,6 +9,8 @@
 
 import os
 import stripe
+import requests
+from requests.auth import HTTPBasicAuth
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
@@ -39,6 +41,7 @@ class User(db.Model):
     password = db.Column(db.String(120), nullable=False)
     privilege = db.Column(db.String(120), nullable=False) # 'regular', 'admin', 'towing'
     blocked = db.Column(db.Boolean, default=False)
+    stripe_acct = db.Column(db.String(120), nullable=True)
 
     def __repr__(self):
         return '<User %r>' % self.email
@@ -161,12 +164,21 @@ def single_book(user_id):
 def login():
     status = ''
     privilege = ''
+    connected = 'no'
     message = ''
     try:
         post_data = request.get_json()
         email = post_data.get('email')
         password = post_data.get('password')
         loginPerson = User.query.filter_by(email=email).first()
+        user_acct = loginPerson.stripe_acct
+        if not user_acct is None: 
+            stripe_info = stripe.Account.retrieve(user_acct)
+            # stripe_info.details_submitted = False # use this line to test for accounts that haven't onboarded all the way
+            if stripe_info.details_submitted:
+                connected = 'yes'
+            else:
+                connected = 'partly'
         if loginPerson.blocked == True:
             return jsonify({
                 'status': 'failed',
@@ -187,26 +199,40 @@ def login():
     return jsonify({
         'status': status,
         'privilege': privilege,
+        'connected': connected,
         'message': message
     })
 
 @app.route('/connect/<user_email>', methods=['GET'])
 def connectUser(user_email):
     user = User.query.filter_by(email=user_email).first()
-    account = stripe.Account.create(
-        type="express",
-        country="US",
-        email=user.email,
-    )
+    if user.stripe_acct is None:
+        account = stripe.Account.create(
+            type="express",
+            country="US",
+            email=user.email,
+        )
+        user.stripe_acct = account.id
+        db.session.commit()
+    user = User.query.filter_by(email=user_email).first()
     account_links = stripe.AccountLink.create(
-        account=account.id,
-        refresh_url='http://localhost:8080/',
-        return_url='http://localhost:8080/manage-spots-owned',
+        account=user.stripe_acct,
+        refresh_url='http://localhost:8080/refresh', #NEED TO DO
+        return_url='http://localhost:8080/return',
         type='account_onboarding',
     )
     return jsonify({
         'status':'success',
         'url':account_links.url
+    })
+
+@app.route('/is-connected/<user_email>', methods=['GET'])
+def checkConnected(user_email):
+    user_acct = User.query.filter_by(email=user_email).first().stripe_acct
+    stripe_req = stripe.Account.retrieve(user_acct)
+    return jsonify({
+        'status': 'success',
+        'acct_info': stripe_req
     })
 
 @app.route('/spots/<user_email>', methods=['GET'])

@@ -8,6 +8,8 @@ import ManageUsers from '../views/ManageUsers'
 import SpotInfo from '../components/SpotInfo'
 import ManageSpotsOwned from '../views/ManageSpotsOwned'
 import Ping from "../components/Ping.vue"
+import Return from "../components/Return"
+import Refresh from "../components/Refresh"
 
 Vue.use(VueRouter);
 
@@ -46,6 +48,16 @@ const routes = [
     path: '/spot-info/:spot_id', //add dates selected eventually?
     name: 'Spot Info',
     component: SpotInfo,
+  },
+  {
+    path: '/return',
+    name: 'Return',
+    component: Return,
+  },
+  {
+    path: '/refresh',
+    name: 'Refresh',
+    component: Refresh,
   },
   {
     path: '/ping',
