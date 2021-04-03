@@ -235,6 +235,15 @@ def checkConnected(user_email):
         'acct_info': stripe_req
     })
 
+@app.route('/dashboard/<user_email>', methods=['GET'])
+def toDashboard(user_email):
+    user_acct = User.query.filter_by(email=user_email).first().stripe_acct
+    login_links = stripe.Account.create_login_link(user_acct)
+    return jsonify({
+        'status':'success',
+        'url':login_links.url
+    })
+
 @app.route('/spots/<user_email>', methods=['GET'])
 def userRegisteredSpots(user_email):
     data = []

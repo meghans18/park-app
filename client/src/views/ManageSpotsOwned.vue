@@ -22,7 +22,7 @@
         
         <span v-if="isConnected=='yes'">
         <button type="button" class="btn btn-success btn-md" v-b-modal.spot-modal>Add a New Spot for Rent</button>
-        <button type="button" class="btn btn-primary btn-mid" style="margin-left: 10px;">Go to Stripe Dashboard</button>
+        <button type="button" class="btn btn-primary btn-mid" style="margin-left: 10px;" @click="goToDashboard()">Go to Stripe Dashboard</button>
         <br>
         <br>
         <table class="table table-hover">
@@ -153,6 +153,14 @@ export default {
         isConnected : function(){ return this.$store.getters.getConnection},
     },
     methods: {
+        goToDashboard() {
+            console.log('hello')
+            let userEmail = this.$store.getters.getEmail
+            const path = `http://localhost:5000/dashboard/${userEmail}`
+            axios.get(path).then((response) => {
+                window.location = response.data.url
+            })
+        },
         connectAccount() {
             let userEmail = this.$store.getters.getEmail
             const path = `http://localhost:5000/connect/${userEmail}`
