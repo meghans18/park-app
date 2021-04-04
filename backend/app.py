@@ -10,8 +10,9 @@
 import os
 import stripe
 import requests
+import json
 from requests.auth import HTTPBasicAuth
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, Response
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from geopy.geocoders import Nominatim
@@ -62,6 +63,14 @@ class Spot(db.Model):
     def __repr__(self):
         return '<Spot %r>' % self.id
 
+class Reservation(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    renter_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    owner_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    spot_id = db.Column(db.Integer, db.ForeignKey('spot.id'))
+
+    def __repr__(self):
+    	return '<Reservation %r>' % self.id
 
 # enable CORS
 CORS(app, resources={r'/*': {'origins': '*'}})
@@ -71,6 +80,18 @@ def find_lat_long(address):
     geolocator = Nominatim(user_agent="park-app")
     location = geolocator.geocode(address)
     return [location.latitude, location.longitude]
+
+def handle_completed_checkout_session(session):
+    try:
+        reservation = Reservation(
+            renter_id=session.metadata.renterID,
+            owner_id=session.metadata.ownerID,
+            spot_id=session.metadata.spotID,
+        )
+        db.session.add(reservation)
+        db.session.commit()
+    except Exception as e:
+        print('failed to add reservation')
 
 #routes
 @app.route("/users", methods=['GET', 'POST'])
@@ -244,6 +265,41 @@ def toDashboard(user_email):
         'url':login_links.url
     })
 
+@app.route('/checkout', methods=['POST'])
+def createCheckout():
+    post_data = request.get_json()
+    renter = User.query.filter_by(email=post_data.get('userEmail')).first()
+    spot = Spot.query.filter_by(id=post_data.get('spotID')).first()
+    owner = User.query.filter_by(id=spot.userId).first()
+    addr = "" + str(spot.addressNumber) + " " + spot.street + ", " + spot.city + ", " + spot.state + " " + str(spot.zipCode)
+    session = stripe.checkout.Session.create(
+        payment_method_types=['card'],
+        line_items=[{
+            'name': addr,
+            'amount': round(float(spot.price) * 100),
+            'currency': 'usd',
+            'quantity': 1,
+        }],
+        payment_intent_data={
+            #'application_fee_amount': 123,
+            'transfer_data': {
+                'destination': owner.stripe_acct,
+            },
+        },
+        metadata={
+            'ownerID': owner.id,
+            'renterID': renter.id,
+            'spotID': spot.id,
+        },
+        mode='payment',
+        success_url='http://localhost:8080/success',
+        cancel_url='http://localhost:8080/failure',
+    )
+    return jsonify({
+        'status': 'success',
+        'session': session.id
+    })
+
 @app.route('/spots/<user_email>', methods=['GET'])
 def userRegisteredSpots(user_email):
     data = []
@@ -343,6 +399,29 @@ def specificSpot(spot_id):
         'spot': data
     })
 
+webhook_secret = 'whsec_kh6uVvzd4oGaWw6953PgvKU5JQuWuiDi'
+
+@app.route("/webhook", methods=["POST"])
+def webhook_received():
+    request_data = json.loads(request.data)
+    signature = request.headers.get("stripe-signature")
+
+    try:
+        event = stripe.Webhook.construct_event(
+            payload=request.data, sig_header=signature, secret=webhook_secret
+        )
+    except ValueError as e:
+        # Invalid payload.
+        return Response(status=400)
+    except stripe.error.SignatureVerificationError as e:
+        # Invalid Signature.
+        return Response(status=400)
+
+    if event["type"] == "checkout.session.completed":
+        session = event["data"]["object"]
+        handle_completed_checkout_session(session)
+
+    return json.dumps({"success": True}), 200
 
 @app.route("/")
 def home():
