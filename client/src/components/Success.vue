@@ -1,6 +1,9 @@
 <template>
     <div id="success">
-        checkout was successful
+        <b-alert variant="success" show>
+            Checkout was successful!
+        </b-alert>
+        <b-button style="margin-right: 15px;" @click="$router.push('/rented-spots')">View Rented Spots</b-button>
     </div>
 </template>
 
