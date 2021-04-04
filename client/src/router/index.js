@@ -10,6 +10,8 @@ import ManageSpotsOwned from '../views/ManageSpotsOwned'
 import Ping from "../components/Ping.vue"
 import Return from "../components/Return"
 import Refresh from "../components/Refresh"
+import Success from "../components/Success"
+import Failure from "../components/Failure"
 
 Vue.use(VueRouter);
 
@@ -58,6 +60,16 @@ const routes = [
     path: '/refresh',
     name: 'Refresh',
     component: Refresh,
+  },
+  {
+    path: '/success',
+    name: 'Success',
+    component: Success,
+  },
+  {
+    path: '/failure',
+    name: 'Failure',
+    component: Failure,
   },
   {
     path: '/ping',
