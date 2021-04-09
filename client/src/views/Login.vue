@@ -70,6 +70,7 @@ export default {
           this.errorMessage = response.data.message
         } else {
           payload.privilege = response.data.privilege
+          payload.connected = response.data.connected
           this.logIn(payload); //sends to auth.js
           this.$router.push("/")
         }

@@ -19,7 +19,7 @@
                 <br>
 
                 <b-button variant="danger" style="margin-right: 15px;" @click="$router.push('/')">Back</b-button>
-                <b-button variant='success'>Checkout with Stripe</b-button>
+                <b-button variant='success' @click="toCheckout()">Checkout with Stripe</b-button>
             </b-col>
             <b-col class="col-6">
                 <google-map :spots="[this.spot]" :center="{ lat: spot.latitude, lng: spot.longitude }"></google-map>
@@ -48,6 +48,24 @@ export default {
             }).catch((error) => {
                 console.error(error);
             });
+        },
+        toCheckout() {
+            var stripe = Stripe('pk_test_51IaQy6CwKcZquRsXh7S1Ep0dnIJhJP0I85FzftkIjhM9zuwqELV8wuHTgRqeWW7Eg2MmXMZ8b47MkSdHuwTXq17a00nbSWxysO'); // eslint-disable-line no-undef
+            const payload = {
+                userEmail: this.$store.getters.getEmail,
+                spotID: this.spot.id,
+            }
+            const path = 'http://localhost:5000/checkout'
+            axios.post(path, payload).then((response) => {
+                let session_ID = response.data.session
+                stripe.redirectToCheckout({
+                    sessionId: session_ID
+                }).then(function (result) {
+                    console.log(result)
+                })
+            }).catch((error) => {
+                console.error(error)
+            })
         }
     },
     created: function() {

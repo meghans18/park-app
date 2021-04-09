@@ -8,6 +8,10 @@ import ManageUsers from '../views/ManageUsers'
 import SpotInfo from '../components/SpotInfo'
 import ManageSpotsOwned from '../views/ManageSpotsOwned'
 import Ping from "../components/Ping.vue"
+import Return from "../components/Return"
+import Refresh from "../components/Refresh"
+import Success from "../components/Success"
+import Failure from "../components/Failure"
 
 Vue.use(VueRouter);
 
@@ -46,6 +50,26 @@ const routes = [
     path: '/spot-info/:spot_id', //add dates selected eventually?
     name: 'Spot Info',
     component: SpotInfo,
+  },
+  {
+    path: '/return',
+    name: 'Return',
+    component: Return,
+  },
+  {
+    path: '/refresh',
+    name: 'Refresh',
+    component: Refresh,
+  },
+  {
+    path: '/success',
+    name: 'Success',
+    component: Success,
+  },
+  {
+    path: '/failure',
+    name: 'Failure',
+    component: Failure,
   },
   {
     path: '/ping',
