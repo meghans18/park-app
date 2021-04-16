@@ -34,8 +34,9 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 db = SQLAlchemy(app)
 
 #models
+
 class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, )
     first_name = db.Column(db.String(80), nullable=False)
     last_name = db.Column(db.String(80), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
@@ -44,30 +45,56 @@ class User(db.Model):
     blocked = db.Column(db.Boolean, default=False)
     stripe_acct = db.Column(db.String(120), nullable=True)
 
+    spots = db.relationship("Spot", back_populates="user")
+
     def __repr__(self):
         return '<User %r>' % self.email
 
 class Spot(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    userId = db.Column(db.Integer, nullable=False)
-    addressNumber = db.Column(db.Integer, nullable=False)
-    street = db.Column(db.String(80), nullable=False)
-    city = db.Column(db.String(50), nullable=False)
-    state = db.Column(db.String(20), nullable=False,)
-    zipCode = db.Column(db.Integer, nullable=False)
-    spotNumber = db.Column(db.Integer, nullable=True)
-    latitude = db.Column(db.Float, nullable=False)
-    longitude = db.Column(db.Float, nullable=False)
+    userId = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False,)
+    addressId = db.Column(db.Integer, db.ForeignKey('address.id'), nullable=False)
+    coordinateId = db.Column(db.Integer, db.ForeignKey('coordinate.id'), nullable=False)
+    spot_number = db.Column(db.Integer, nullable=False)
     price = db.Column(db.Integer, nullable=False)
 
-    def __repr__(self):
-        return '<Spot %r>' % self.id
+    user = db.relationship("User", back_populates='spots')
+    address = db.relationship("Address", back_populates='spots')
+    coordinate = db.relationship("Coordinate", back_populates='spots')
+    reservations = db.relationship("Reservation", back_populates="spot")
+
+class Coordinate(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    latitude = db.Column(db.Float, nullable=False)
+    longitude = db.Column(db.Float, nullable=False)
+
+    spots = db.relationship("Spot", back_populates="coordinate")
+
+class Address(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    addressNumber = db.Column(db.Integer, nullable=False)
+    street = db.Column(db.String(80), nullable=False)
+    zipcode = db.Column(db.Integer, db.ForeignKey('zip.zipcode'), nullable=False)
+
+    spots = db.relationship("Spot", back_populates='address')
+    zipcodeR = db.relationship("Zip", back_populates="addresses")
+
+class Zip(db.Model):
+    zipcode = db.Column(db.Integer, primary_key=True, autoincrement=False, nullable=False)
+    city = db.Column(db.String(50), nullable=False)
+    state = db.Column(db.String(20), nullable=False)
+
+    addresses = db.relationship("Address", back_populates="zipcodeR")
 
 class Reservation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     renter_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     owner_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     spot_id = db.Column(db.Integer, db.ForeignKey('spot.id'))
+
+    renter = db.relationship("User", foreign_keys=[renter_id], backref='renters')
+    owner = db.relationship("User", foreign_keys=[owner_id], backref='owners')
+    spot = db.relationship("Spot", back_populates="reservations")
 
     def __repr__(self):
     	return '<Reservation %r>' % self.id
@@ -136,7 +163,7 @@ def register():
         })
 
 @app.route('/users/<user_id>', methods=['PUT', 'DELETE'])
-def single_book(user_id):
+def update_user(user_id):
     status = ''
     message = ''
     person = User.query.filter_by(id=user_id).first()
@@ -305,19 +332,23 @@ def userRegisteredSpots(user_email):
     data = []
     user_id = User.query.filter_by(email=user_email).first().id
     spots = Spot.query.filter_by(userId = user_id).all()
-    for spot in spots:
+    records = db.session.query(Spot.id.label('spotID'), User.id.label('userID'), Address.addressNumber,
+                              Address.street, Zip.city, Zip.state, Zip.zipcode, Spot.spot_number,
+                              Coordinate.latitude, Coordinate.longitude, Spot.price
+                             ).join(User).join(Address).join(Zip).join(Coordinate).filter(User.id == user_id)
+    for record in records:
         data.append({
-            "id": spot.id,
-            "userId": spot.userId,
-            "addressNum": spot.addressNumber,
-            "street": spot.street,
-            "city": spot.city,
-            "state": spot.state,
-            "zipcode": spot.zipCode,
-            "spotNumber": spot.spotNumber,
-            "latitude": spot.latitude,
-            "longitude": spot.longitude,
-            "price": spot.price
+            "id": record.spotID,
+            "userId": record.userID,
+            "addressNum": record.addressNumber,
+            "street": record.street,
+            "city": record.city,
+            "state": record.state,
+            "zipcode": record.zipcode,
+            "spotNumber": record.spot_number,
+            "latitude": record.latitude,
+            "longitude": record.longitude,
+            "price": record.price
         })
     return jsonify({
         'status': 'success',
@@ -333,16 +364,39 @@ def spot():
             userId = User.query.filter_by(email=email).first().id
             address = "" + post_data.get('addressNum') + " " + post_data.get('street') + ", " + post_data.get('city') + ", " + post_data.get('state') + " " + post_data.get('zipcode')
             latLong = find_lat_long(address)
+            coordinate = Coordinate.query.filter_by(latitude=latLong[0], longitude=latLong[1]).first()
+            zipcodeRecord = Zip.query.filter_by(zipcode=post_data.get('zipcode')).first()
+            address = Address.query.filter_by(addressNumber=post_data.get('addressNum'), street=post_data.get('street'), zipcode=post_data.get('zipcode')).first()
+            if not coordinate:
+                coordinate = Coordinate(
+                    latitude = latLong[0],
+                    longitude = latLong[1],
+                )
+                db.session.add(coordinate)
+
+            if not zipcodeRecord:
+                zipcodeRecord = Zip(
+                    zipcode = post_data.get('zipcode'),
+                    city = post_data.get('city'),
+                    state = post_data.get('state')
+                )
+                db.session.add(zipcodeRecord)
+            db.session.flush()
+
+            if not address:
+                address = Address(
+                    addressNumber = post_data.get('addressNum'),
+                    street = post_data.get('street'),
+                    zipcode = zipcodeRecord.zipcode
+                )
+                db.session.add(address)
+            db.session.flush()
+
             spot = Spot(
             	userId = userId,
-                addressNumber = post_data.get('addressNum'),
-                street = post_data.get('street'),
-                city = post_data.get('city'),
-                state = post_data.get('state'),
-                zipCode = post_data.get('zipcode'),
-                spotNumber = post_data.get('spotNumber'),
-                latitude = latLong[0],
-                longitude = latLong[1],
+                addressId = address.id,
+                coordinateId = coordinate.id,
+                spot_number = post_data.get('spotNumber'),
                 price = post_data.get('price')
             )
             db.session.add(spot)
@@ -358,20 +412,23 @@ def spot():
             })
     else:
         data = []
-        spots = Spot.query.all()
-        for spot in spots:
+        records = db.session.query(Spot.id.label('spotID'), User.id.label('userID'), Address.addressNumber,
+                              Address.street, Zip.city, Zip.state, Zip.zipcode, Spot.spot_number,
+                              Coordinate.latitude, Coordinate.longitude, Spot.price
+                             ).join(User).join(Address).join(Zip).join(Coordinate)
+        for record in records:
             data.append({
-                "id": spot.id,
-                "userId": spot.userId,
-                "addressNum": spot.addressNumber,
-                "street": spot.street,
-                "city": spot.city,
-                "state": spot.state,
-                "zipcode": spot.zipCode,
-                "spotNumber": spot.spotNumber,
-                "latitude": spot.latitude,
-                "longitude": spot.longitude,
-                "price": spot.price
+                "id": record.spotID,
+                "userId": record.userID,
+                "addressNum": record.addressNumber,
+                "street": record.street,
+                "city": record.city,
+                "state": record.state,
+                "zipcode": record.zipcode,
+                "spotNumber": record.spot_number,
+                "latitude": record.latitude,
+                "longitude": record.longitude,
+                "price": record.price
             })
         return jsonify({
             'status': 'success',
@@ -380,19 +437,22 @@ def spot():
 
 @app.route('/spot/<spot_id>', methods=['GET'])
 def specificSpot(spot_id):
-    spot = Spot.query.filter_by(id = spot_id).first()
+    record = db.session.query(Spot.id.label('spotID'), User.id.label('userID'), Address.addressNumber,
+                              Address.street, Zip.city, Zip.state, Zip.zipcode, Spot.spot_number,
+                              Coordinate.latitude, Coordinate.longitude, Spot.price
+                             ).join(User).join(Address).join(Zip).join(Coordinate).filter(Spot.id == spot_id).first()
     data = {
-        "id": spot.id,
-        "userId": spot.userId,
-        "addressNum": spot.addressNumber,
-        "street": spot.street,
-        "city": spot.city,
-        "state": spot.state,
-        "zipcode": spot.zipCode,
-        "spotNumber": spot.spotNumber,
-        "latitude": spot.latitude,
-        "longitude": spot.longitude,
-        "price": spot.price
+        "id": record.spotID,
+        "userId": record.userID,
+        "addressNum": record.addressNumber,
+        "street": record.street,
+        "city": record.city,
+        "state": record.state,
+        "zipcode": record.zipcode,
+        "spotNumber": record.spot_number,
+        "latitude": record.latitude,
+        "longitude": record.longitude,
+        "price": record.price
     }
     return jsonify({
         'status': 'success',

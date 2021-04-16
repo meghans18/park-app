@@ -29,6 +29,7 @@
           <thead>
             <tr>
               <th scope="col">Spot Address</th>
+              <th scope='col'>Spot Number</th>
               <th scope="col">List Price</th>
               <th></th>
             </tr>
@@ -36,6 +37,7 @@
           <tbody>
             <tr v-for="spot in spots" :key="spot.id">
               <td>{{spot.addressNum}} {{spot.street}}, {{spot.city}}, {{spot.state}} {{spot.zipcode}}</td>
+              <td>{{spot.spotNumber}}</td>
               <td>${{spot.price}}/per day</td>
               <td>
                 <div class="btn-group" role="group">
