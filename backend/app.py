@@ -17,8 +17,6 @@ from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from geopy.geocoders import Nominatim
 
-stripe.api_key = "sk_test_51IaQy6CwKcZquRsXVvYz1eY7GlE7iSZqCVBXn9tnyBqjxQXQA6C3pVblvlKRJWpBn8gKgcpI6xbyUqxCAPO5iAZm00x4e83yRb"
-
 # configuration
 DEBUG = True
 
@@ -33,8 +31,9 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
 
-#models
+stripe.api_key = "sk_test_51IaQy6CwKcZquRsXVvYz1eY7GlE7iSZqCVBXn9tnyBqjxQXQA6C3pVblvlKRJWpBn8gKgcpI6xbyUqxCAPO5iAZm00x4e83yRb"
 
+#models
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True, )
     first_name = db.Column(db.String(80), nullable=False)
@@ -109,6 +108,7 @@ def find_lat_long(address):
     return [location.latitude, location.longitude]
 
 def handle_completed_checkout_session(session):
+    print('in here')
     try:
         reservation = Reservation(
             renter_id=session.metadata.renterID,
@@ -296,14 +296,20 @@ def toDashboard(user_email):
 def createCheckout():
     post_data = request.get_json()
     renter = User.query.filter_by(email=post_data.get('userEmail')).first()
-    spot = Spot.query.filter_by(id=post_data.get('spotID')).first()
-    owner = User.query.filter_by(id=spot.userId).first()
-    addr = "" + str(spot.addressNumber) + " " + spot.street + ", " + spot.city + ", " + spot.state + " " + str(spot.zipCode)
+    spot_id = Spot.query.filter_by(id=post_data.get('spotID')).first().id
+
+    record = db.session.query(Spot.id.label('spotID'), User.id.label('userID'), Address.addressNumber,
+                              Address.street, Zip.city, Zip.state, Zip.zipcode, Spot.price
+                             ).join(User).join(Address).join(Zip).join(Coordinate).filter(Spot.id == spot_id).first()
+
+    owner = User.query.filter_by(id=record.userID).first()
+
+    addr = "" + str(record.addressNumber) + " " + record.street + ", " + record.city + ", " + record.state + " " + str(record.zipcode)
     session = stripe.checkout.Session.create(
         payment_method_types=['card'],
         line_items=[{
             'name': addr,
-            'amount': round(float(spot.price) * 100),
+            'amount': round(float(record.price) * 100),
             'currency': 'usd',
             'quantity': 1,
         }],
@@ -316,7 +322,7 @@ def createCheckout():
         metadata={
             'ownerID': owner.id,
             'renterID': renter.id,
-            'spotID': spot.id,
+            'spotID': record.spotID,
         },
         mode='payment',
         success_url='http://localhost:8080/success',
@@ -353,6 +359,35 @@ def userRegisteredSpots(user_email):
     return jsonify({
         'status': 'success',
         'spots': data
+    })
+
+@app.route('/reservations/<user_email>', methods=['GET'])
+def userReservations(user_email):
+    print('in here')
+    data = []
+    user_id = User.query.filter_by(email=user_email).first().id
+    records = db.session.query(Reservation.id.label('reservationNum'), Spot.id.label('spotID'), Reservation.renter_id.label('renterID'), 
+                               Address.addressNumber, Address.street, Zip.city, Zip.state, Zip.zipcode, 
+                               Spot.spot_number, Coordinate.latitude, Coordinate.longitude, Spot.price
+                              ).join(Reservation, Spot.id == Reservation.spot_id).join(User, Reservation.renter_id == User.id).join(Address).join(Zip).join(Coordinate).filter(Reservation.renter_id == user_id).all()
+    for record in records:
+        data.append({
+            "reservationNum": record.reservationNum,
+            "spotID": record.spotID,
+            "renterID": record.renterID,
+            "addressNum": record.addressNumber,
+            "street": record.street,
+            "city": record.city,
+            "state": record.state,
+            "zipcode": record.zipcode,
+            "spotNumber": record.spot_number,
+            "latitude": record.latitude,
+            "longitude": record.longitude,
+            "price": record.price
+        })
+    return jsonify({
+        'status': 'success',
+        'reservations': data
     })
 
 @app.route("/spots", methods=['GET','POST'])
