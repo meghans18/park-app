@@ -13,7 +13,7 @@
                 <h5><strong>Price Per Day:</strong></h5>
                 <p> ${{spot.price}} </p>
                 <h5><strong>Date Chosen:</strong></h5>
-                <p><em>Not implemented yet</em></p>
+                <p>{{ date }}</p>
 
                 <br>
                 <br>
@@ -37,7 +37,8 @@ export default {
     name: 'SpotInfo',
     data() {
         return {
-            spot: {}
+            spot: {},
+            date: ''
         }
     },
     methods: {
@@ -54,6 +55,7 @@ export default {
             const payload = {
                 userEmail: this.$store.getters.getEmail,
                 spotID: this.spot.id,
+                date: this.date
             }
             const path = 'http://localhost:5000/checkout'
             axios.post(path, payload).then((response) => {
@@ -69,6 +71,7 @@ export default {
         }
     },
     created: function() {
+        this.date = this.$route.params.date
         this.setSpot(this.$route.params.spot_id);
     },
 }

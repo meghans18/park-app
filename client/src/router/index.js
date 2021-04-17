@@ -47,7 +47,7 @@ const routes = [
     component: ManageSpotsOwned
   },
   {
-    path: '/spot-info/:spot_id', //add dates selected eventually?
+    path: '/spot-info/:spot_id/:date', //add dates selected eventually?
     name: 'Spot Info',
     component: SpotInfo,
   },

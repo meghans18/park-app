@@ -8,6 +8,7 @@
                     <th scope="col">Spot Address</th>
                     <th scope="col">Spot Number</th>
                     <th scope="col">Spot Price</th>
+                    <th scope="col">Date</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -15,6 +16,7 @@
                     <td>{{reservation.addressNum}} {{reservation.street}}, {{reservation.city}}, {{reservation.state}} {{reservation.zipcode}}</td>
                     <td>{{reservation.spotNumber}}</td>
                     <td>${{reservation.price}}/per day</td>
+                    <td>{{reservation.date}}</td>
                     </tr>
                 </tbody>
             </table>
