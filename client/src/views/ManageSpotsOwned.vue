@@ -82,16 +82,16 @@
                                     placeholder="Enter city:">
                     </b-form-input>
                 </b-form-group>
-                <b-form-group id="form-state-group"
-                                label="State:"
-                                label-for="form-state-input">
-                    <b-form-input id="form-state-input"
-                                    type="text"
-                                    v-model="form.state"
-                                    required
-                                    placeholder="Enter state:">
-                    </b-form-input>
+
+                <b-form-group id="form-state-group" label="State:" label-for="form-state-input">
+                    <b-form-select
+                        id="form-state-input"
+                        v-model="form.state"
+                        :options="states"
+                        required
+                    ></b-form-select>
                 </b-form-group>
+
                 <b-form-group id="form-zipcode-group"
                                 label="Zipcode:"
                                 label-for="form-zipcode-input">
@@ -155,6 +155,7 @@ export default {
             },
             spots: null,
             showError: false,
+            states: ['Iowa']
         }
     },
     computed : {

@@ -13,6 +13,7 @@ import Refresh from "../components/Refresh"
 import Success from "../components/Success"
 import Failure from "../components/Failure"
 import MapHome from "../views/MapHome"
+import RegisterVehicle from "../views/RegisterVehicle"
 
 Vue.use(VueRouter);
 
@@ -41,6 +42,11 @@ const routes = [
     path: "/rented-spots",
     name: "Rented Spots",
     component: RentedSpots,
+  },
+  {
+    path: "/register-vehicle",
+    name: "Register Vehicle",
+    component: RegisterVehicle
   },
   {
     path: '/manage-users',

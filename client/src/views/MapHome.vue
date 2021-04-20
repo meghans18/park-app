@@ -81,10 +81,12 @@ export default {
   methods: {
     //perform checks on zipcode input when submit button is pressed and show error if needed
     submitCity() {
+      this.showLocationAlert = false
       this.getAllSpots();
     },
     onChange(e) {
       this.date = e.srcElement.value
+      this.showLocationAlert = false
       this.getAllSpots();
     },
     minDate() {
@@ -123,7 +125,6 @@ export default {
       sessionStorage.setItem('date', this.date)
       sessionStorage.setItem('city', this.city)
       axios.post(path, payload).then((response) => {
-        console.log(response)
           this.spots = response.data.spots
           if (response.data.coords.length != 0) {
             this.latitude = response.data.coords[0]

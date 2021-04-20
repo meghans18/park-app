@@ -5,6 +5,7 @@
             <table class="table table-hover">
                 <thead>
                     <tr>
+                    <th scope="col">Car</th>
                     <th scope="col">Spot Address</th>
                     <th scope="col">Spot Number</th>
                     <th scope="col">Spot Price</th>
@@ -13,6 +14,7 @@
                 </thead>
                 <tbody>
                     <tr v-for="reservation in reservations" :key="reservation.reservationNum">
+                    <td>{{reservation.car}}</td>
                     <td>{{reservation.addressNum}} {{reservation.street}}, {{reservation.city}}, {{reservation.state}} {{reservation.zipcode}}</td>
                     <td>{{reservation.spotNumber}}</td>
                     <td>${{reservation.price}}/per day</td>

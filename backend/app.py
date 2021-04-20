@@ -46,6 +46,7 @@ class User(db.Model):
     stripe_acct = db.Column(db.String(120), nullable=True)
 
     spots = db.relationship("Spot", back_populates="user")
+    cars = db.relationship("Car", back_populates="owner")
 
     def __repr__(self):
         return '<User %r>' % self.email
@@ -92,14 +93,29 @@ class Reservation(db.Model):
     renter_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     owner_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     spot_id = db.Column(db.Integer, db.ForeignKey('spot.id'))
+    car_id = db.Column(db.Integer, db.ForeignKey('car.id'))
     date = db.Column(db.String, nullable=False)
 
     renter = db.relationship("User", foreign_keys=[renter_id], backref='renters')
     owner = db.relationship("User", foreign_keys=[owner_id], backref='owners')
     spot = db.relationship("Spot", back_populates="reservations")
+    car = db.relationship("Car", back_populates="reservations")
 
     def __repr__(self):
     	return '<Reservation %r>' % self.id
+
+# car table: id, userID, year, make, model, color, plateNumber
+class Car(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    year = db.Column(db.Integer, nullable=False)
+    make = db.Column(db.String, nullable=False)
+    model = db.Column(db.String, nullable=False)
+    color = db.Column(db.String, nullable=False)
+    plateNumber = db.Column(db.String, nullable=False)
+
+    owner = db.relationship("User", back_populates="cars")
+    reservations = db.relationship("Reservation", back_populates="car")
 
 # enable CORS
 CORS(app, resources={r'/*': {'origins': '*'}})
@@ -111,13 +127,14 @@ def find_lat_long(address):
     return [location.latitude, location.longitude]
 
 def handle_completed_checkout_session(session):
-    print(session)
+    # print(session)
     try:
         reservation = Reservation(
             renter_id=session.metadata.renterID,
             owner_id=session.metadata.ownerID,
             spot_id=session.metadata.spotID,
             date=session.metadata.date,
+            car_id=session.metadata.carID,
         )
         db.session.add(reservation)
         db.session.commit()
@@ -212,6 +229,27 @@ def update_user(user_id):
         'message': message
     })
 
+@app.route('/vehicles/<car_id>', methods=['DELETE'])
+def delete_car(car_id):
+    status = ''
+    message = ''
+    car = Car.query.filter_by(id=car_id).first()
+    if request.method == 'DELETE':
+        try:
+            db.session.delete(car)
+            db.session.commit()
+            status = 'success'
+            message = 'Vehicle deleted successfully'
+        except Exception as e:
+            return jsonify({
+                'status': 'failed',
+                'message': 'Deletion failed'
+            })
+    return jsonify({
+        'status': status,
+        'message': message
+    })
+
 @app.route("/login", methods=['POST'])
 def login():
     status = ''
@@ -278,6 +316,8 @@ def connectUser(user_email):
         'url':account_links.url
     })
 
+
+
 @app.route('/is-connected/<user_email>', methods=['GET'])
 def checkConnected(user_email):
     user_acct = User.query.filter_by(email=user_email).first().stripe_acct
@@ -327,7 +367,8 @@ def createCheckout():
             'ownerID': owner.id,
             'renterID': renter.id,
             'spotID': record.spotID,
-            'date': post_data.get('date')
+            'date': post_data.get('date'),
+            'carID': post_data.get('car')
         },
         mode='payment',
         success_url='http://localhost:8080/success',
@@ -370,15 +411,37 @@ def userRegisteredSpots(user_email):
         'spots': data
     })
 
+@app.route('/vehicles/<user_email>', methods=['GET'])
+def userRegisteredVehicles(user_email):
+    data = []
+    user_id = User.query.filter_by(email=user_email).first().id
+    records = Car.query.filter_by(user_id = user_id).all()
+    for record in records:
+        data.append({
+            "id": record.id,
+            "userId": record.user_id,
+            "year": record.year,
+            "make": record.make,
+            "model": record.model,
+            "color": record.color,
+            "plateNumber": record.plateNumber,
+        })
+    return jsonify({
+        'status': 'success',
+        'vehicles': data
+    })
+
 @app.route('/reservations/<user_email>', methods=['GET'])
 def userReservations(user_email):
     data = []
     user_id = User.query.filter_by(email=user_email).first().id
     records = db.session.query(Reservation.id.label('reservationNum'), Spot.id.label('spotID'), Reservation.renter_id.label('renterID'), 
                                Address.addressNumber, Address.street, Zip.city, Zip.state, Zip.zipcode, 
-                               Spot.spot_number, Coordinate.latitude, Coordinate.longitude, Spot.price, Reservation.date
+                               Spot.spot_number, Coordinate.latitude, Coordinate.longitude, Spot.price, Reservation.date, Reservation.car_id
                               ).join(Reservation, Spot.id == Reservation.spot_id).join(User, Reservation.renter_id == User.id).join(Address).join(Zip).join(Coordinate).filter(Reservation.renter_id == user_id).all()
     for record in records:
+        car = Car.query.filter_by(id=record.car_id).first()
+        carStr = "" + car.color + " " + str(car.year) + " " + car.make + " " + car.model + " "
         data.append({
             "reservationNum": record.reservationNum,
             "spotID": record.spotID,
@@ -393,6 +456,7 @@ def userReservations(user_email):
             "longitude": record.longitude,
             "price": record.price,
             "date": record.date,
+            "car": carStr
         })
     return jsonify({
         'status': 'success',
@@ -457,7 +521,35 @@ def spot():
                 'message': 'Failed to add spot'
             })
 
-# TODO: broken, need to change once dates implemented
+@app.route("/vehicles", methods=['GET','POST'])
+def vehicle():
+    if request.method == 'POST':
+        try:
+            post_data = request.get_json()
+            print(post_data)
+            email = post_data.get('email')
+            userId = User.query.filter_by(email=email).first().id
+
+            car = Car(
+            	user_id = userId,
+                year = post_data.get('year'),
+                make = post_data.get('make'),
+                model = post_data.get('model'),
+                color = post_data.get('color'),
+                plateNumber = post_data.get('plateNumber')
+            )
+            db.session.add(car)
+            db.session.commit()
+            return jsonify({
+                'status': 'success',
+                'message': 'Vehicle added!'
+            })
+        except Exception as e:
+            return jsonify({
+                'status': 'failed',
+                'message': 'Failed to add vehicle'
+            })
+
 @app.route('/listSpots', methods=["POST"])
 def listSpots():
     data = []

@@ -90,6 +90,7 @@ export default {
     ...mapActions(["logIn"]),
     addUser(payload) {
       const path = 'http://localhost:5000/users';
+      console.log(payload)
       axios.post(path, payload).then((response) => {
         console.log(response)
         if (response.data.status == 'failed') { 
