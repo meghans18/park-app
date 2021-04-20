@@ -435,10 +435,15 @@ def userRegisteredVehicles(user_email):
 def userReservations(user_email):
     data = []
     user_id = User.query.filter_by(email=user_email).first().id
+    today = date.today()
+    d1 = today.strftime("%Y-%m-%d")
     records = db.session.query(Reservation.id.label('reservationNum'), Spot.id.label('spotID'), Reservation.renter_id.label('renterID'), 
                                Address.addressNumber, Address.street, Zip.city, Zip.state, Zip.zipcode, 
                                Spot.spot_number, Coordinate.latitude, Coordinate.longitude, Spot.price, Reservation.date, Reservation.car_id
-                              ).join(Reservation, Spot.id == Reservation.spot_id).join(User, Reservation.renter_id == User.id).join(Address).join(Zip).join(Coordinate).filter(Reservation.renter_id == user_id).all()
+                              ).join(Reservation, Spot.id == Reservation.spot_id).join(User, Reservation.renter_id == User.id).join(Address).join(Zip).join(Coordinate) \
+                        .filter(Reservation.renter_id == user_id) \
+                        .filter(Reservation.date >= d1).all()
+    records.sort(key=lambda x: x.date)
     for record in records:
         car = Car.query.filter_by(id=record.car_id).first()
         carStr = "" + car.color + " " + str(car.year) + " " + car.make + " " + car.model + " "

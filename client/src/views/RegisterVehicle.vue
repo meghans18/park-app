@@ -4,7 +4,7 @@
             Failed to register vehicle!
         </b-alert>
         <div class="text-center">
-            <p style="color: #0a814c; font-size: 2em;">Manage/Add Vehicles</p>
+            <p style="color: #0a814c; font-size: 2em;">Register Vehicles</p>
         </div>
 
         <button type="button" class="btn btn-success btn-md" v-b-modal.vehicle-modal>Add a New Vehicle</button>
@@ -17,18 +17,12 @@
             <tr>
               <th scope="col">Vehicle</th>
               <th scope="col">Plate Number</th>
-              <th></th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="vehicle in vehicles" :key="vehicle.id">
                 <td>{{vehicle.year}} {{vehicle.make}} {{vehicle.model}} {{vehicle.color}}</td>
                 <td>{{vehicle.plateNumber}}</td>
-                <td>
-                    <button type="button" class="btn btn-danger btn-sm" @click="deleteCar(vehicle)">
-                        Delete
-                    </button>
-                </td>
             </tr>
           </tbody>
         </table>

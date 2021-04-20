@@ -37,16 +37,8 @@
         </div>
 
         </div>
-          <div v-if="User">
+          <div >
             <spot-list :spots="this.spots" :date="this.date"></spot-list>
-          </div>
-          <div v-else>
-            <br>
-            <br>
-            <br>
-            <div style="padding: 0px 100px">
-            <p style="color: #0a814c; font-size: 2em;">Select a date and zipcode above to get started and see available spots!</p>
-            </div>
           </div>
       </b-col>
     </div>
