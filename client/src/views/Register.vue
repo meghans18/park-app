@@ -100,7 +100,7 @@ export default {
           payload.connected = 'no'
           console.log(payload)
           this.logIn(payload); //sends to auth.js
-          this.$router.push("/")
+          this.$router.push("/map-home")
         }
       }).catch((error) => {
         console.log(error);

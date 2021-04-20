@@ -473,11 +473,11 @@ def listSpots():
                         .join(Coordinate, Coordinate.id == Spot.coordinateId) \
                         .filter(Spot.id.notin_(spotIDs)) \
                         .filter(Spot.userId != userId) \
-                        .filter(Spot.available_until > post_data.get('date')) \
-                        .all()
-    print('new')
-    for record in records:
-        print(record)
+                        .filter(Zip.city == post_data.get('city')) \
+                        .filter(Spot.available_until > post_data.get('date')).all()
+
+    coords = []
+    
     for record in records:
         data.append({
             "id": record.id,
@@ -492,9 +492,11 @@ def listSpots():
             "longitude": record.longitude,
             "price": record.price
         })
+        coords = [record.latitude, record.longitude]
     return jsonify({
         'status': 'success',
-        'spots': data
+        'spots': data,
+        'coords': coords,
     })
 
 @app.route('/spot/<spot_id>', methods=['GET'])

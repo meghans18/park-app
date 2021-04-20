@@ -18,7 +18,7 @@
                 <br>
                 <br>
 
-                <b-button variant="danger" style="margin-right: 15px;" @click="$router.push('/')">Back</b-button>
+                <b-button variant="danger" style="margin-right: 15px;" @click="$router.push('/map-home')">Back</b-button>
                 <b-button variant='success' @click="toCheckout()">Checkout with Stripe</b-button>
             </b-col>
             <b-col class="col-6">

@@ -12,6 +12,7 @@ import Return from "../components/Return"
 import Refresh from "../components/Refresh"
 import Success from "../components/Success"
 import Failure from "../components/Failure"
+import MapHome from "../views/MapHome"
 
 Vue.use(VueRouter);
 
@@ -20,6 +21,11 @@ const routes = [
     path: "/",
     name: "Home",
     component: Home,
+  },
+  {
+    path: '/map-home',
+    name: "Map Home",
+    component: MapHome,
   },
   {
     path: "/register",
