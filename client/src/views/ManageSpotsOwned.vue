@@ -29,19 +29,17 @@
           <thead>
             <tr>
               <th scope="col">Spot Address</th>
+              <th scope='col'>Spot Number</th>
               <th scope="col">List Price</th>
-              <th></th>
+              <th scope="col">Available Until</th>
             </tr>
           </thead>
           <tbody>
             <tr v-for="spot in spots" :key="spot.id">
               <td>{{spot.addressNum}} {{spot.street}}, {{spot.city}}, {{spot.state}} {{spot.zipcode}}</td>
+              <td>{{spot.spotNumber}}</td>
               <td>${{spot.price}}/per day</td>
-              <td>
-                <div class="btn-group" role="group">
-                  <button type="button" class="btn btn-danger btn-md">Delete Spot</button>
-                </div>
-              </td>
+              <td>{{spot.available_until}}</td>
             </tr>
           </tbody>
         </table>
@@ -84,16 +82,16 @@
                                     placeholder="Enter city:">
                     </b-form-input>
                 </b-form-group>
-                <b-form-group id="form-state-group"
-                                label="State:"
-                                label-for="form-state-input">
-                    <b-form-input id="form-state-input"
-                                    type="text"
-                                    v-model="form.state"
-                                    required
-                                    placeholder="Enter state:">
-                    </b-form-input>
+
+                <b-form-group id="form-state-group" label="State:" label-for="form-state-input">
+                    <b-form-select
+                        id="form-state-input"
+                        v-model="form.state"
+                        :options="states"
+                        required
+                    ></b-form-select>
                 </b-form-group>
+
                 <b-form-group id="form-zipcode-group"
                                 label="Zipcode:"
                                 label-for="form-zipcode-input">
@@ -123,6 +121,15 @@
                                     placeholder="Enter price for the spot per day:">
                     </b-form-input>
                 </b-form-group>
+                <b-form-group id="form-date-group"
+                                label="Available Until:"
+                                label-for="form-date-input">
+                    <b-form-input id="form-date-input"
+                                    type="date"
+                                    v-model="form.date"
+                                    required>
+                    </b-form-input>
+                </b-form-group>
                 <b-button type="submit" variant="primary">Submit</b-button>
                 <b-button type="reset" variant="danger">Reset</b-button>
             </b-form>
@@ -144,9 +151,11 @@ export default {
                 zipcode: '',
                 spotNumber: '',
                 price: '',
+                date: ''
             },
             spots: null,
             showError: false,
+            states: ['Iowa']
         }
     },
     computed : {
@@ -202,6 +211,7 @@ export default {
                 zipcode: this.form.zipcode,
                 spotNumber: this.form.spotNumber,
                 price: this.form.price,
+                date: this.form.date
             };
             this.addSpot(payload);
         },
@@ -213,6 +223,7 @@ export default {
             this.form.zipcode = ''
             this.form.spotNumber = ''
             this.form.price = ''
+            this.form.date = ''
         }
     },
     created: function() {

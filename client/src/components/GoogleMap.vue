@@ -32,7 +32,7 @@
 <script>
 export default {
   name: "GoogleMap",
-  props: ['spots', 'center'],
+  props: ['spots', 'center', 'date'],
   data() {
     return {
       // default to Iowa City
@@ -49,7 +49,7 @@ export default {
     },
     openInfo(spotID) {
       if (this.$store.getters.getEmail) {
-        this.$router.push({name: 'Spot Info', params: { spot_id: spotID }});
+        this.$router.push({name: 'Spot Info', params: { spot_id: spotID, date: this.date }});
       }
     },
     getPosition: function(spot) {

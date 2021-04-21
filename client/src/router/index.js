@@ -12,6 +12,10 @@ import Return from "../components/Return"
 import Refresh from "../components/Refresh"
 import Success from "../components/Success"
 import Failure from "../components/Failure"
+import MapHome from "../views/MapHome"
+import RegisterVehicle from "../views/RegisterVehicle"
+import ManageSpots from "../views/ManageSpots"
+import FAQ from "../views/FAQ"
 
 Vue.use(VueRouter);
 
@@ -20,6 +24,11 @@ const routes = [
     path: "/",
     name: "Home",
     component: Home,
+  },
+  {
+    path: '/map-home',
+    name: "Map Home",
+    component: MapHome,
   },
   {
     path: "/register",
@@ -37,6 +46,11 @@ const routes = [
     component: RentedSpots,
   },
   {
+    path: "/register-vehicle",
+    name: "Register Vehicle",
+    component: RegisterVehicle
+  },
+  {
     path: '/manage-users',
     name: 'Manage Users',
     component: ManageUsers,
@@ -47,9 +61,19 @@ const routes = [
     component: ManageSpotsOwned
   },
   {
-    path: '/spot-info/:spot_id', //add dates selected eventually?
+    path: '/spot-info/:spot_id/:date', //add dates selected eventually?
     name: 'Spot Info',
     component: SpotInfo,
+  },
+  {
+    path: '/manage-spots',
+    name: 'Manage Spots',
+    component: ManageSpots
+  },
+  {
+    path: '/faq',
+    name: 'FAQ',
+    component: FAQ
   },
   {
     path: '/return',
