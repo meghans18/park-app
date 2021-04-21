@@ -316,8 +316,6 @@ def connectUser(user_email):
         'url':account_links.url
     })
 
-
-
 @app.route('/is-connected/<user_email>', methods=['GET'])
 def checkConnected(user_email):
     user_acct = User.query.filter_by(email=user_email).first().stripe_acct
@@ -430,6 +428,57 @@ def userRegisteredVehicles(user_email):
         'status': 'success',
         'vehicles': data
     })
+
+@app.route('/reservations', methods=['GET', 'POST'])
+def allReservations():
+    if request.method == 'POST':
+        post_data = request.get_json()
+        reservation = Reservation.query.filter_by(id=post_data.get('reservationID')).first()
+        try:
+            db.session.delete(reservation)
+            db.session.commit()
+            return jsonify({
+                'status': 'success',
+                'message': 'Reservation deleted!'
+            })
+        except Exception as e:
+            return jsonify({
+                'status': 'failed',
+                'message': 'Deletion failed'
+            })
+    if request.method == "GET":
+        data = []
+        today = date.today()
+        d1 = today.strftime("%Y-%m-%d")
+        records = db.session.query(Reservation.id.label('reservationNum'), Spot.id.label('spotID'), Reservation.renter_id.label('renterID'), 
+                                Address.addressNumber, Address.street, Zip.city, Zip.state, Zip.zipcode, 
+                                Spot.spot_number, Coordinate.latitude, Coordinate.longitude, Spot.price, Reservation.date, Reservation.car_id
+                                ).join(Reservation, Spot.id == Reservation.spot_id).join(User, Reservation.renter_id == User.id).join(Address).join(Zip).join(Coordinate) \
+                            .filter(Reservation.date >= d1).all()
+        records.sort(key=lambda x: x.date)
+        for record in records:
+            car = Car.query.filter_by(id=record.car_id).first()
+            carStr = "" + car.color + " " + str(car.year) + " " + car.make + " " + car.model + " "
+            data.append({
+                "reservationNum": record.reservationNum,
+                "spotID": record.spotID,
+                "renterID": record.renterID,
+                "addressNum": record.addressNumber,
+                "street": record.street,
+                "city": record.city,
+                "state": record.state,
+                "zipcode": record.zipcode,
+                "spotNumber": record.spot_number,
+                "latitude": record.latitude,
+                "longitude": record.longitude,
+                "price": record.price,
+                "date": record.date,
+                "car": carStr
+            })
+        return jsonify({
+            'status': 'success',
+            'reservations': data
+        })
 
 @app.route('/reservations/<user_email>', methods=['GET'])
 def userReservations(user_email):

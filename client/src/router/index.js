@@ -14,6 +14,8 @@ import Success from "../components/Success"
 import Failure from "../components/Failure"
 import MapHome from "../views/MapHome"
 import RegisterVehicle from "../views/RegisterVehicle"
+import ManageSpots from "../views/ManageSpots"
+import FAQ from "../views/FAQ"
 
 Vue.use(VueRouter);
 
@@ -62,6 +64,16 @@ const routes = [
     path: '/spot-info/:spot_id/:date', //add dates selected eventually?
     name: 'Spot Info',
     component: SpotInfo,
+  },
+  {
+    path: '/manage-spots',
+    name: 'Manage Spots',
+    component: ManageSpots
+  },
+  {
+    path: '/faq',
+    name: 'FAQ',
+    component: FAQ
   },
   {
     path: '/return',
