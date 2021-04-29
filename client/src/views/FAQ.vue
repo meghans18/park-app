@@ -28,6 +28,33 @@
 
             <b-card no-body class="mb-1">
             <b-card-header header-tag="header" class="p-1" role="tab">
+                <b-button block v-b-toggle.accordion-6 variant="success">Why aren't any spots showing up on the map or in the list?</b-button>
+            </b-card-header>
+            <b-collapse id="accordion-6" accordion="my-accordion" role="tabpanel">
+                <b-card-body>
+                <b-card-text>If there are no spots on your map or in the list, there might be no spots listed as available for that date or
+                    or all the spots available for that date are already reserved. Check back to see when more people have leased their spot!
+                </b-card-text>
+                </b-card-body>
+            </b-collapse>
+            </b-card>
+
+            <b-card no-body class="mb-1">
+            <b-card-header header-tag="header" class="p-1" role="tab">
+                <b-button block v-b-toggle.accordion-5 variant="success">How do I rent a spot?</b-button>
+            </b-card-header>
+            <b-collapse id="accordion-5" accordion="my-accordion" role="tabpanel">
+                <b-card-body>
+                <b-card-text>First navigate to the <strong>Home</strong> tab. From there, you can either click on a marker on the map or on the
+                            <strong>View Spot</strong> button. Either of these will take you to a page
+                            that shows the spot and date you selected. You will then have to select a vehicle to proceed checking out via Stripe.
+                </b-card-text>
+                </b-card-body>
+            </b-collapse>
+            </b-card>
+
+            <b-card no-body class="mb-1">
+            <b-card-header header-tag="header" class="p-1" role="tab">
                 <b-button block v-b-toggle.accordion-3 variant="success">Why isn't there a Checkout button when viewing specific spot information?</b-button>
             </b-card-header>
             <b-collapse id="accordion-3" accordion="my-accordion" role="tabpanel">
@@ -42,13 +69,26 @@
 
             <b-card no-body class="mb-1">
             <b-card-header header-tag="header" class="p-1" role="tab">
-                <b-button block v-b-toggle.accordion-4 variant="success">Why can't I list my spot for rent?</b-button>
+                <b-button block v-b-toggle.accordion-4 variant="success">How do I list my spot for rent?</b-button>
             </b-card-header>
             <b-collapse id="accordion-4" accordion="my-accordion" role="tabpanel">
                 <b-card-body>
                 <b-card-text>Due to all our payments and payouts being handled by Stripe, users must first register through Stripe before they can list a spot.
                     On the <strong>Add Spots</strong> tab, you will first see a button to connect with Stripe. Once you have done that, you will see options to list your spot 
                     or check out your Stripe dashboard to see your balance and next payout date/amount.
+                </b-card-text>
+                </b-card-body>
+            </b-collapse>
+            </b-card>
+
+            <b-card no-body class="mb-1">
+            <b-card-header header-tag="header" class="p-1" role="tab">
+                <b-button block v-b-toggle.accordion-8 variant="success">What do I do if someone stays past the day they rented my spot for?</b-button>
+            </b-card-header>
+            <b-collapse id="accordion-8" accordion="my-accordion" role="tabpanel">
+                <b-card-body>
+                <b-card-text>Please email us at <strong>assistwithpark@gmail.com</strong> right away! We will check the reservation information and then
+                    contact the towing company to remove any overstay vehicles promptly.
                 </b-card-text>
                 </b-card-body>
             </b-collapse>
