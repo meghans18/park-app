@@ -13,13 +13,26 @@
                 <h5><strong>Price Per Day:</strong></h5>
                 <p> ${{spot.price}} </p>
                 <h5><strong>Date Chosen:</strong></h5>
-                <p><em>Not implemented yet</em></p>
+                <p>{{ date }}</p>
 
-                <br>
-                <br>
+                <h5><strong>Select a Vehicle:</strong></h5>
+                <b-form @submit.prevent="toCheckout()" show>
+                <b-form-group id="input-group-2">
+                    <b-form-select
+                        id="input-2"
+                        v-model="car"
+                        :options="cars"
+                        required
+                    ></b-form-select>
+                </b-form-group>
 
-                <b-button variant="danger" style="margin-right: 15px;" @click="$router.push('/')">Back</b-button>
-                <b-button variant='success' @click="toCheckout()">Checkout with Stripe</b-button>
+                <div class="row">
+                <b-button variant="danger" style="margin-right: 15px;" @click="$router.push('/map-home')">Back</b-button>
+                <div v-if="car">
+                <b-button type="submit" variant='success' @click="toCheckout()">Checkout with Stripe</b-button>
+                </div>
+                </div>
+                </b-form>
             </b-col>
             <b-col class="col-6">
                 <google-map :spots="[this.spot]" :center="{ lat: spot.latitude, lng: spot.longitude }"></google-map>
@@ -37,7 +50,10 @@ export default {
     name: 'SpotInfo',
     data() {
         return {
-            spot: {}
+            spot: {},
+            date: '',
+            car: '',
+            cars: []
         }
     },
     methods: {
@@ -54,6 +70,8 @@ export default {
             const payload = {
                 userEmail: this.$store.getters.getEmail,
                 spotID: this.spot.id,
+                date: this.date,
+                car: this.car.id
             }
             const path = 'http://localhost:5000/checkout'
             axios.post(path, payload).then((response) => {
@@ -66,10 +84,22 @@ export default {
             }).catch((error) => {
                 console.error(error)
             })
+        },
+        getCars() {
+            let userEmail = this.$store.getters.getEmail
+            const path = `http://localhost:5000/vehicles/${userEmail}`
+            axios.get(path).then((response) => {
+                var data = response.data.vehicles
+                for (var i = 0; i < data.length; i++) {
+                    this.cars.push({ value: data[i], text: "" + data[i].color + " " + data[i].year + " " + data[i].make + " " + data[i].model})
+                }
+            })
         }
     },
     created: function() {
+        this.date = this.$route.params.date
         this.setSpot(this.$route.params.spot_id);
+        this.getCars();
     },
 }
 </script>

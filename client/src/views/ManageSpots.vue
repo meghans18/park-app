@@ -1,13 +1,13 @@
 <template>
-    <div id="rented-spots" class="container">
-        <div class="text-center">
-            <p style="color: #0a814c; font-size: 2em;">Your Current Reservations</p>
-            <b-input-group >
-                <b-form-input v-model="city" placeholder="Filter by city: "></b-form-input>
-                <b-input-group-append>
-                </b-input-group-append>
-            </b-input-group>
-            <br>
+    <div id="manage-spots" class="container">
+        <p style="color: #0a814c; font-size: 2em;">All Current Reservations</p>
+        <b-input-group >
+            <b-form-input v-model="city" placeholder="Filter by city: "></b-form-input>
+            <b-input-group-append>
+            </b-input-group-append>
+        </b-input-group>
+
+        <br>
 
             <div v-if="city == null || city == ''">
             <table class="table table-hover">
@@ -18,6 +18,7 @@
                     <th scope="col">Spot Number</th>
                     <th scope="col">Spot Price</th>
                     <th scope="col">Date</th>
+                    <th></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -27,6 +28,11 @@
                     <td>{{reservation.spotNumber}}</td>
                     <td>${{reservation.price}}/per day</td>
                     <td>{{reservation.date}}</td>
+                    <td>
+                        <button type="button" class="btn btn-danger btn-sm" @click="tow(reservation)">
+                            Towed?
+                        </button>
+                    </td>
                     </tr>
                 </tbody>
             </table>
@@ -41,6 +47,7 @@
                     <th scope="col">Spot Number</th>
                     <th scope="col">Spot Price</th>
                     <th scope="col">Date</th>
+                    <th></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -50,22 +57,27 @@
                     <td>{{reservation.spotNumber}}</td>
                     <td>${{reservation.price}}/per day</td>
                     <td>{{reservation.date}}</td>
+                    <td>
+                        <button type="button" class="btn btn-danger btn-sm" @click="tow(reservation)">
+                            Towed?
+                        </button>
+                    </td>
                     </tr>
                 </tbody>
             </table>
             </div>
-        </div>
     </div>
 </template>
 
 <script>
 import axios from 'axios'
 export default {
-    name: 'RentedSpots',
+    name: 'ManageSpots',
     data() {
         return {
             reservations: [],
             city: null,
+            status: 'not_towed'
         }
     },
     computed: {
@@ -77,10 +89,19 @@ export default {
     },
     methods: {
         getReservations() {
-            let userEmail = this.$store.getters.getEmail
-            const path = `http://localhost:5000/reservations/${userEmail}`
+            const path = `http://localhost:5000/reservations`
             axios.get(path).then((response) => {
                 this.reservations = response.data.reservations
+            })
+        },
+        tow(res) {
+            console.log(res)
+            const payload = {
+                'reservationID': res.reservationNum
+            }
+            const path = 'http://localhost:5000/reservations'
+            axios.post(path, payload).then((response) => {
+                if (response.data.status == 'success') this.getReservations()
             })
         }
     },

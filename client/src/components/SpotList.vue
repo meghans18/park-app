@@ -30,10 +30,10 @@ export default {
     computed: {
       isLoggedIn : function(){ return this.$store.getters.isAuthenticated},
     },
-    props: ['spots'],
+    props: ['spots', 'date'],
     methods: {
       submit(el) {
-        this.$router.push({name: 'Spot Info', params: { spot_id: el } })
+        this.$router.push({name: 'Spot Info', params: { spot_id: el, date: this.date } })
         // window.location = "https://www.google.com"
       }
     }

@@ -1,76 +1,39 @@
 <template>
-  <div id="home">
-    <div class="row">
-      <b-col class="col-12 text-center">
-        <div v-if="User">
-          <b-alert v-model="showAlert" variant="success" dismissible>
-            Logged in as {{User}}
-          </b-alert>
+    <div id="map-home">
+        <br> <br> <br> <br> <br> <br> <br>
+    
+        <div class="container">
+            <div class="container align-middle" id="message">
+            <b-alert show variant="success">
+                <h4 class="alert-heading"><strong>Welcome to Park!</strong></h4>
+                <p>
+                We help you provide parking spots for other people to rent or find a parking spot for yourself on any day you need!
+                </p>
+                <hr>
+                <p class="mb-0"><strong>
+                Please Register or Login above to get started
+                </strong></p>
+            </b-alert>
+            </div>
         </div>
-      </b-col>
     </div>
-
-    <div class="row" style="height: 80vh">       
-      <b-col class="col-6" style="height: 100%;">
-        <google-map :spots="this.spots" :center="{ lat: 41.6611, lng: -91.5302 }"></google-map>
-      </b-col>
-      <b-col class="col-6" style="height: 100%; overflow-y: scroll">
-        <spot-list :spots="this.spots"></spot-list>
-      </b-col>
-    </div>
-  </div>
 </template>
-<script>
-import { mapGetters } from "vuex";
-import axios from 'axios'
-import GoogleMap from '@/components/GoogleMap.vue'
-import SpotList from '@/components/SpotList.vue'
 
+<script>
 export default {
-  name: 'Home',
-  components: {
-    GoogleMap,
-    SpotList
-  },
-  data() {
-    return {
-      showAlert: false,
-      spots: null,
-    }
-  },
-  computed: {
-    ...mapGetters({User: "getEmail", Privilege: "getPrivilege"}),
-  },
-  methods: {
-    checkShowAlert: function() {
-      if (sessionStorage.getItem('show') == null) {
-        this.showAlert = true;
-        sessionStorage.setItem('show', false)
-      } else {
-        this.showAlert = false;
-      }
-    },
-    getAllSpots() {
-      const path = 'http://localhost:5000/spots';
-      axios.get(path).then((response) => {
-          this.spots = response.data.spots
-      }).catch((error) => {
-          console.log(error);
-      });
-    },
-  },
-  created: function() {
-    this.getAllSpots();
-  },
-  mounted: function() {
-    this.checkShowAlert();
-  },
+    name: "MapHome",
 }
 </script>
 
 <style scoped>
-#home {
-  overflow-y:hidden;
-  overflow-x: hidden;
+#map-home {
+    background-image: url("~@/assets/parking-lot.jpg");
+    background-color: black;
+    height: 75vh;
+    overflow-y: none;
+}
+
+#message {
+    opacity: 0.9!important;
 }
 </style>

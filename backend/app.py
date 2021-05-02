@@ -16,8 +16,7 @@ from flask import Flask, jsonify, request, Response
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from geopy.geocoders import Nominatim
-
-stripe.api_key = "sk_test_51IaQy6CwKcZquRsXVvYz1eY7GlE7iSZqCVBXn9tnyBqjxQXQA6C3pVblvlKRJWpBn8gKgcpI6xbyUqxCAPO5iAZm00x4e83yRb"
+from datetime import date
 
 # configuration
 DEBUG = True
@@ -33,9 +32,11 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
 db = SQLAlchemy(app)
 
+stripe.api_key = "sk_test_51IaQy6CwKcZquRsXVvYz1eY7GlE7iSZqCVBXn9tnyBqjxQXQA6C3pVblvlKRJWpBn8gKgcpI6xbyUqxCAPO5iAZm00x4e83yRb"
+
 #models
 class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True, )
     first_name = db.Column(db.String(80), nullable=False)
     last_name = db.Column(db.String(80), nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
@@ -44,33 +45,77 @@ class User(db.Model):
     blocked = db.Column(db.Boolean, default=False)
     stripe_acct = db.Column(db.String(120), nullable=True)
 
+    spots = db.relationship("Spot", back_populates="user")
+    cars = db.relationship("Car", back_populates="owner")
+
     def __repr__(self):
         return '<User %r>' % self.email
 
 class Spot(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    userId = db.Column(db.Integer, nullable=False)
-    addressNumber = db.Column(db.Integer, nullable=False)
-    street = db.Column(db.String(80), nullable=False)
-    city = db.Column(db.String(50), nullable=False)
-    state = db.Column(db.String(20), nullable=False,)
-    zipCode = db.Column(db.Integer, nullable=False)
-    spotNumber = db.Column(db.Integer, nullable=True)
+    userId = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False,)
+    addressId = db.Column(db.Integer, db.ForeignKey('address.id'), nullable=False)
+    coordinateId = db.Column(db.Integer, db.ForeignKey('coordinate.id'), nullable=False)
+    spot_number = db.Column(db.Integer, nullable=False)
+    price = db.Column(db.Integer, nullable=False)
+    available_until = db.Column(db.String, nullable=False)
+
+    user = db.relationship("User", back_populates='spots')
+    address = db.relationship("Address", back_populates='spots')
+    coordinate = db.relationship("Coordinate", back_populates='spots')
+    reservations = db.relationship("Reservation", back_populates="spot")
+
+class Coordinate(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
     latitude = db.Column(db.Float, nullable=False)
     longitude = db.Column(db.Float, nullable=False)
-    price = db.Column(db.Integer, nullable=False)
 
-    def __repr__(self):
-        return '<Spot %r>' % self.id
+    spots = db.relationship("Spot", back_populates="coordinate")
+
+class Address(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    addressNumber = db.Column(db.Integer, nullable=False)
+    street = db.Column(db.String(80), nullable=False)
+    zipcode = db.Column(db.Integer, db.ForeignKey('zip.zipcode'), nullable=False)
+
+    spots = db.relationship("Spot", back_populates='address')
+    zipcodeR = db.relationship("Zip", back_populates="addresses")
+
+class Zip(db.Model):
+    zipcode = db.Column(db.Integer, primary_key=True, autoincrement=False, nullable=False)
+    city = db.Column(db.String(50), nullable=False)
+    state = db.Column(db.String(20), nullable=False)
+
+    addresses = db.relationship("Address", back_populates="zipcodeR")
 
 class Reservation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     renter_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     owner_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     spot_id = db.Column(db.Integer, db.ForeignKey('spot.id'))
+    car_id = db.Column(db.Integer, db.ForeignKey('car.id'))
+    date = db.Column(db.String, nullable=False)
+
+    renter = db.relationship("User", foreign_keys=[renter_id], backref='renters')
+    owner = db.relationship("User", foreign_keys=[owner_id], backref='owners')
+    spot = db.relationship("Spot", back_populates="reservations")
+    car = db.relationship("Car", back_populates="reservations")
 
     def __repr__(self):
     	return '<Reservation %r>' % self.id
+
+# car table: id, userID, year, make, model, color, plateNumber
+class Car(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    year = db.Column(db.Integer, nullable=False)
+    make = db.Column(db.String, nullable=False)
+    model = db.Column(db.String, nullable=False)
+    color = db.Column(db.String, nullable=False)
+    plateNumber = db.Column(db.String, nullable=False)
+
+    owner = db.relationship("User", back_populates="cars")
+    reservations = db.relationship("Reservation", back_populates="car")
 
 # enable CORS
 CORS(app, resources={r'/*': {'origins': '*'}})
@@ -82,11 +127,14 @@ def find_lat_long(address):
     return [location.latitude, location.longitude]
 
 def handle_completed_checkout_session(session):
+    # print(session)
     try:
         reservation = Reservation(
             renter_id=session.metadata.renterID,
             owner_id=session.metadata.ownerID,
             spot_id=session.metadata.spotID,
+            date=session.metadata.date,
+            car_id=session.metadata.carID,
         )
         db.session.add(reservation)
         db.session.commit()
@@ -136,7 +184,7 @@ def register():
         })
 
 @app.route('/users/<user_id>', methods=['PUT', 'DELETE'])
-def single_book(user_id):
+def update_user(user_id):
     status = ''
     message = ''
     person = User.query.filter_by(id=user_id).first()
@@ -171,6 +219,27 @@ def single_book(user_id):
             db.session.commit()
             status = 'success'
             message = 'User deleted successfully'
+        except Exception as e:
+            return jsonify({
+                'status': 'failed',
+                'message': 'Deletion failed'
+            })
+    return jsonify({
+        'status': status,
+        'message': message
+    })
+
+@app.route('/vehicles/<car_id>', methods=['DELETE'])
+def delete_car(car_id):
+    status = ''
+    message = ''
+    car = Car.query.filter_by(id=car_id).first()
+    if request.method == 'DELETE':
+        try:
+            db.session.delete(car)
+            db.session.commit()
+            status = 'success'
+            message = 'Vehicle deleted successfully'
         except Exception as e:
             return jsonify({
                 'status': 'failed',
@@ -269,14 +338,20 @@ def toDashboard(user_email):
 def createCheckout():
     post_data = request.get_json()
     renter = User.query.filter_by(email=post_data.get('userEmail')).first()
-    spot = Spot.query.filter_by(id=post_data.get('spotID')).first()
-    owner = User.query.filter_by(id=spot.userId).first()
-    addr = "" + str(spot.addressNumber) + " " + spot.street + ", " + spot.city + ", " + spot.state + " " + str(spot.zipCode)
+    spot_id = Spot.query.filter_by(id=post_data.get('spotID')).first().id
+
+    record = db.session.query(Spot.id.label('spotID'), User.id.label('userID'), Address.addressNumber,
+                              Address.street, Zip.city, Zip.state, Zip.zipcode, Spot.price
+                             ).join(User).join(Address).join(Zip).join(Coordinate).filter(Spot.id == spot_id).first()
+
+    owner = User.query.filter_by(id=record.userID).first()
+
+    addr = "" + str(record.addressNumber) + " " + record.street + ", " + record.city + ", " + record.state + " " + str(record.zipcode)
     session = stripe.checkout.Session.create(
         payment_method_types=['card'],
         line_items=[{
             'name': addr,
-            'amount': round(float(spot.price) * 100),
+            'amount': round(float(record.price) * 100),
             'currency': 'usd',
             'quantity': 1,
         }],
@@ -289,7 +364,9 @@ def createCheckout():
         metadata={
             'ownerID': owner.id,
             'renterID': renter.id,
-            'spotID': spot.id,
+            'spotID': record.spotID,
+            'date': post_data.get('date'),
+            'carID': post_data.get('car')
         },
         mode='payment',
         success_url='http://localhost:8080/success',
@@ -305,23 +382,139 @@ def userRegisteredSpots(user_email):
     data = []
     user_id = User.query.filter_by(email=user_email).first().id
     spots = Spot.query.filter_by(userId = user_id).all()
-    for spot in spots:
+    today = date.today()
+    d1 = today.strftime("%Y-%m-%d")
+    records = db.session.query(Spot.id.label('spotID'), User.id.label('userID'), Address.addressNumber,
+                              Address.street, Zip.city, Zip.state, Zip.zipcode, Spot.spot_number,
+                              Coordinate.latitude, Coordinate.longitude, Spot.price, Spot.available_until,
+                             ).join(User).join(Address).join(Zip).join(Coordinate).filter(User.id == user_id) \
+                        .filter(Spot.available_until > d1)
+    for record in records:
         data.append({
-            "id": spot.id,
-            "userId": spot.userId,
-            "addressNum": spot.addressNumber,
-            "street": spot.street,
-            "city": spot.city,
-            "state": spot.state,
-            "zipcode": spot.zipCode,
-            "spotNumber": spot.spotNumber,
-            "latitude": spot.latitude,
-            "longitude": spot.longitude,
-            "price": spot.price
+            "id": record.spotID,
+            "userId": record.userID,
+            "addressNum": record.addressNumber,
+            "street": record.street,
+            "city": record.city,
+            "state": record.state,
+            "zipcode": record.zipcode,
+            "spotNumber": record.spot_number,
+            "latitude": record.latitude,
+            "longitude": record.longitude,
+            "price": record.price,
+            "available_until": record.available_until,
         })
     return jsonify({
         'status': 'success',
         'spots': data
+    })
+
+@app.route('/vehicles/<user_email>', methods=['GET'])
+def userRegisteredVehicles(user_email):
+    data = []
+    user_id = User.query.filter_by(email=user_email).first().id
+    records = Car.query.filter_by(user_id = user_id).all()
+    for record in records:
+        data.append({
+            "id": record.id,
+            "userId": record.user_id,
+            "year": record.year,
+            "make": record.make,
+            "model": record.model,
+            "color": record.color,
+            "plateNumber": record.plateNumber,
+        })
+    return jsonify({
+        'status': 'success',
+        'vehicles': data
+    })
+
+@app.route('/reservations', methods=['GET', 'POST'])
+def allReservations():
+    if request.method == 'POST':
+        post_data = request.get_json()
+        reservation = Reservation.query.filter_by(id=post_data.get('reservationID')).first()
+        try:
+            db.session.delete(reservation)
+            db.session.commit()
+            return jsonify({
+                'status': 'success',
+                'message': 'Reservation deleted!'
+            })
+        except Exception as e:
+            return jsonify({
+                'status': 'failed',
+                'message': 'Deletion failed'
+            })
+    if request.method == "GET":
+        data = []
+        today = date.today()
+        d1 = today.strftime("%Y-%m-%d")
+        records = db.session.query(Reservation.id.label('reservationNum'), Spot.id.label('spotID'), Reservation.renter_id.label('renterID'), 
+                                Address.addressNumber, Address.street, Zip.city, Zip.state, Zip.zipcode, 
+                                Spot.spot_number, Coordinate.latitude, Coordinate.longitude, Spot.price, Reservation.date, Reservation.car_id
+                                ).join(Reservation, Spot.id == Reservation.spot_id).join(User, Reservation.renter_id == User.id).join(Address).join(Zip).join(Coordinate) \
+                            .filter(Reservation.date >= d1).all()
+        records.sort(key=lambda x: x.date)
+        for record in records:
+            car = Car.query.filter_by(id=record.car_id).first()
+            carStr = "" + car.color + " " + str(car.year) + " " + car.make + " " + car.model + " "
+            data.append({
+                "reservationNum": record.reservationNum,
+                "spotID": record.spotID,
+                "renterID": record.renterID,
+                "addressNum": record.addressNumber,
+                "street": record.street,
+                "city": record.city,
+                "state": record.state,
+                "zipcode": record.zipcode,
+                "spotNumber": record.spot_number,
+                "latitude": record.latitude,
+                "longitude": record.longitude,
+                "price": record.price,
+                "date": record.date,
+                "car": carStr
+            })
+        return jsonify({
+            'status': 'success',
+            'reservations': data
+        })
+
+@app.route('/reservations/<user_email>', methods=['GET'])
+def userReservations(user_email):
+    data = []
+    user_id = User.query.filter_by(email=user_email).first().id
+    today = date.today()
+    d1 = today.strftime("%Y-%m-%d")
+    records = db.session.query(Reservation.id.label('reservationNum'), Spot.id.label('spotID'), Reservation.renter_id.label('renterID'), 
+                               Address.addressNumber, Address.street, Zip.city, Zip.state, Zip.zipcode, 
+                               Spot.spot_number, Coordinate.latitude, Coordinate.longitude, Spot.price, Reservation.date, Reservation.car_id
+                              ).join(Reservation, Spot.id == Reservation.spot_id).join(User, Reservation.renter_id == User.id).join(Address).join(Zip).join(Coordinate) \
+                        .filter(Reservation.renter_id == user_id) \
+                        .filter(Reservation.date >= d1).all()
+    records.sort(key=lambda x: x.date)
+    for record in records:
+        car = Car.query.filter_by(id=record.car_id).first()
+        carStr = "" + car.color + " " + str(car.year) + " " + car.make + " " + car.model + " "
+        data.append({
+            "reservationNum": record.reservationNum,
+            "spotID": record.spotID,
+            "renterID": record.renterID,
+            "addressNum": record.addressNumber,
+            "street": record.street,
+            "city": record.city,
+            "state": record.state,
+            "zipcode": record.zipcode,
+            "spotNumber": record.spot_number,
+            "latitude": record.latitude,
+            "longitude": record.longitude,
+            "price": record.price,
+            "date": record.date,
+            "car": carStr
+        })
+    return jsonify({
+        'status': 'success',
+        'reservations': data
     })
 
 @app.route("/spots", methods=['GET','POST'])
@@ -329,21 +522,46 @@ def spot():
     if request.method == 'POST':
         try:
             post_data = request.get_json()
+            print(post_data)
             email = post_data.get('email')
             userId = User.query.filter_by(email=email).first().id
             address = "" + post_data.get('addressNum') + " " + post_data.get('street') + ", " + post_data.get('city') + ", " + post_data.get('state') + " " + post_data.get('zipcode')
             latLong = find_lat_long(address)
+            coordinate = Coordinate.query.filter_by(latitude=latLong[0], longitude=latLong[1]).first()
+            zipcodeRecord = Zip.query.filter_by(zipcode=post_data.get('zipcode')).first()
+            address = Address.query.filter_by(addressNumber=post_data.get('addressNum'), street=post_data.get('street'), zipcode=post_data.get('zipcode')).first()
+            if not coordinate:
+                coordinate = Coordinate(
+                    latitude = latLong[0],
+                    longitude = latLong[1],
+                )
+                db.session.add(coordinate)
+
+            if not zipcodeRecord:
+                zipcodeRecord = Zip(
+                    zipcode = post_data.get('zipcode'),
+                    city = post_data.get('city'),
+                    state = post_data.get('state')
+                )
+                db.session.add(zipcodeRecord)
+            db.session.flush()
+
+            if not address:
+                address = Address(
+                    addressNumber = post_data.get('addressNum'),
+                    street = post_data.get('street'),
+                    zipcode = zipcodeRecord.zipcode
+                )
+                db.session.add(address)
+            db.session.flush()
+
             spot = Spot(
             	userId = userId,
-                addressNumber = post_data.get('addressNum'),
-                street = post_data.get('street'),
-                city = post_data.get('city'),
-                state = post_data.get('state'),
-                zipCode = post_data.get('zipcode'),
-                spotNumber = post_data.get('spotNumber'),
-                latitude = latLong[0],
-                longitude = latLong[1],
-                price = post_data.get('price')
+                addressId = address.id,
+                coordinateId = coordinate.id,
+                spot_number = post_data.get('spotNumber'),
+                price = post_data.get('price'),
+                available_until = post_data.get('date'),
             )
             db.session.add(spot)
             db.session.commit()
@@ -356,43 +574,95 @@ def spot():
                 'status': 'failed',
                 'message': 'Failed to add spot'
             })
-    else:
-        data = []
-        spots = Spot.query.all()
-        for spot in spots:
-            data.append({
-                "id": spot.id,
-                "userId": spot.userId,
-                "addressNum": spot.addressNumber,
-                "street": spot.street,
-                "city": spot.city,
-                "state": spot.state,
-                "zipcode": spot.zipCode,
-                "spotNumber": spot.spotNumber,
-                "latitude": spot.latitude,
-                "longitude": spot.longitude,
-                "price": spot.price
+
+@app.route("/vehicles", methods=['GET','POST'])
+def vehicle():
+    if request.method == 'POST':
+        try:
+            post_data = request.get_json()
+            print(post_data)
+            email = post_data.get('email')
+            userId = User.query.filter_by(email=email).first().id
+
+            car = Car(
+            	user_id = userId,
+                year = post_data.get('year'),
+                make = post_data.get('make'),
+                model = post_data.get('model'),
+                color = post_data.get('color'),
+                plateNumber = post_data.get('plateNumber')
+            )
+            db.session.add(car)
+            db.session.commit()
+            return jsonify({
+                'status': 'success',
+                'message': 'Vehicle added!'
             })
-        return jsonify({
-            'status': 'success',
-            'spots': data
+        except Exception as e:
+            return jsonify({
+                'status': 'failed',
+                'message': 'Failed to add vehicle'
+            })
+
+@app.route('/listSpots', methods=["POST"])
+def listSpots():
+    data = []
+    post_data = request.get_json()
+
+    userId = User.query.filter_by(email=post_data.get('email')).first().id
+    spotIDs = db.session.query(Reservation.spot_id).filter(Reservation.date == post_data.get('date'))
+    records = db.session.query(Spot.id, Spot.userId, 
+                               Address.addressNumber, Address.street, Zip.city, Zip.state, Zip.zipcode, 
+                               Spot.spot_number, Coordinate.latitude, Coordinate.longitude, Spot.price) \
+                        .join(Address, Address.id == Spot.addressId) \
+                        .join(Zip, Zip.zipcode == Address.zipcode) \
+                        .join(Coordinate, Coordinate.id == Spot.coordinateId) \
+                        .filter(Spot.id.notin_(spotIDs)) \
+                        .filter(Spot.userId != userId) \
+                        .filter(Zip.city == post_data.get('city')) \
+                        .filter(Spot.available_until > post_data.get('date')).all()
+
+    coords = []
+    
+    for record in records:
+        data.append({
+            "id": record.id,
+            "userId": record.userId,
+            "addressNum": record.addressNumber,
+            "street": record.street,
+            "city": record.city,
+            "state": record.state,
+            "zipcode": record.zipcode,
+            "spotNumber": record.spot_number,
+            "latitude": record.latitude,
+            "longitude": record.longitude,
+            "price": record.price
         })
+        coords = [record.latitude, record.longitude]
+    return jsonify({
+        'status': 'success',
+        'spots': data,
+        'coords': coords,
+    })
 
 @app.route('/spot/<spot_id>', methods=['GET'])
 def specificSpot(spot_id):
-    spot = Spot.query.filter_by(id = spot_id).first()
+    record = db.session.query(Spot.id.label('spotID'), User.id.label('userID'), Address.addressNumber,
+                              Address.street, Zip.city, Zip.state, Zip.zipcode, Spot.spot_number,
+                              Coordinate.latitude, Coordinate.longitude, Spot.price
+                             ).join(User).join(Address).join(Zip).join(Coordinate).filter(Spot.id == spot_id).first()
     data = {
-        "id": spot.id,
-        "userId": spot.userId,
-        "addressNum": spot.addressNumber,
-        "street": spot.street,
-        "city": spot.city,
-        "state": spot.state,
-        "zipcode": spot.zipCode,
-        "spotNumber": spot.spotNumber,
-        "latitude": spot.latitude,
-        "longitude": spot.longitude,
-        "price": spot.price
+        "id": record.spotID,
+        "userId": record.userID,
+        "addressNum": record.addressNumber,
+        "street": record.street,
+        "city": record.city,
+        "state": record.state,
+        "zipcode": record.zipcode,
+        "spotNumber": record.spot_number,
+        "latitude": record.latitude,
+        "longitude": record.longitude,
+        "price": record.price
     }
     return jsonify({
         'status': 'success',
